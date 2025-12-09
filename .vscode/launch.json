@@ -1,0 +1,54 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-CitasServiceNuevoApplication<citas-service-nuevo-CitasAPI>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "citas_service_nuevo.CitasServiceNuevoApplication",
+            "projectName": "citas-service-nuevo-CitasAPI",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-HistorialServiceApplication<historial-service-HistorialAPI>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.clinica.api.historial_service.HistorialServiceApplication",
+            "projectName": "historial-service-HistorialAPI",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PersonalServiceApplication<personal-service-UsuariosAPI>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.clinica.api.personal_service.PersonalServiceApplication",
+            "projectName": "personal-service-UsuariosAPI",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SegurosServiceApplication<seguros-service-SegurosAPI>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.clinica.api.seguros_service.SegurosServiceApplication",
+            "projectName": "seguros-service-SegurosAPI",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-CitasServiceNuevoApplication<citas-service-CitasAPI>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "citas_service_nuevo.CitasServiceNuevoApplication",
+            "projectName": "citas-service-CitasAPI",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
