@@ -3,6 +3,8 @@ package com.clinica.api.historial_service.controller;
 import com.clinica.api.historial_service.model.Historial;
 import com.clinica.api.historial_service.service.HistorialService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -28,6 +30,10 @@ public class HistorialController {
         summary = "Obtiene todos los historiales asociados a un usuario.",
         description = "Provee el detalle clínico completo de un paciente específico, devolviendo 204 si aún no registra atenciones."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de historiales encontrada para el usuario."),
+        @ApiResponse(responseCode = "204", description = "El usuario no tiene historiales registrados.")
+    })
     public ResponseEntity<List<Historial>> getHistorialesByUsuarioId(@PathVariable("usuarioId") Long usuarioId) {
         List<Historial> historiales = historialService.findHistorialesByUsuarioId(usuarioId);
         if (historiales.isEmpty()) {
@@ -42,6 +48,10 @@ public class HistorialController {
         description = "Permite revisar todas las atenciones realizadas por un médico para análisis de desempeño u ocupación. "
             + "Cuando no tiene historiales, se responde 204."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de historiales encontrada para el doctor."),
+        @ApiResponse(responseCode = "204", description = "El doctor no registra historiales.")
+    })
     public ResponseEntity<List<Historial>> getHistorialesByDoctorId(@PathVariable("doctorId") Long doctorId) {
         List<Historial> historiales = historialService.findHistorialesByDoctorId(doctorId);
         if (historiales.isEmpty()) {
@@ -56,6 +66,10 @@ public class HistorialController {
         description = "Entrega los datos clínicos detallados de un historial específico. "
             + "Si el identificador no existe, se devuelve 404 Not Found."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Historial encontrado y devuelto."),
+        @ApiResponse(responseCode = "404", description = "No existe un historial con el ID indicado.")
+    })
     public ResponseEntity<Historial> getHistorialById(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(historialService.findHistorialById(id));

@@ -3,6 +3,8 @@ package com.clinica.api.seguros_service.controller;
 import com.clinica.api.seguros_service.model.Seguro;
 import com.clinica.api.seguros_service.service.SeguroService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -34,6 +36,10 @@ public class SeguroController {
         description = "Devuelve el catálogo vigente de seguros con su información esencial. "
             + "Responde 204 No Content cuando no existen planes configurados."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de seguros devuelta correctamente."),
+        @ApiResponse(responseCode = "204", description = "No hay seguros configurados en el sistema.")
+    })
     public ResponseEntity<List<Seguro>> listarSeguros() {
         List<Seguro> seguros = seguroService.findAllSeguros();
         if (seguros.isEmpty()) {
@@ -47,6 +53,10 @@ public class SeguroController {
         summary = "Obtiene los detalles de un seguro por su ID.",
         description = "Permite inspeccionar un plan particular y responde 404 cuando el identificador no pertenece a ningún seguro."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Seguro encontrado y retornado."),
+        @ApiResponse(responseCode = "404", description = "Seguro no encontrado para el ID indicado.")
+    })
     public ResponseEntity<Seguro> obtenerSeguro(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(seguroService.findSeguroById(id));
@@ -60,6 +70,9 @@ public class SeguroController {
         summary = "Crea un nuevo seguro.",
         description = "Registra un plan de seguro con la información proporcionada y devuelve 201 con el recurso almacenado."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Seguro creado correctamente.")
+    })
     public ResponseEntity<Seguro> crearSeguro(@RequestBody Seguro seguro) {
         return ResponseEntity.status(HttpStatus.CREATED).body(seguroService.createSeguro(seguro));
     }
@@ -70,6 +83,10 @@ public class SeguroController {
         description = "Reemplaza los atributos fundamentales del plan (nombre, descripción y valor) para mantenerlo al día. "
             + "Cuando el ID no existe se responde 404."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Seguro actualizado correctamente."),
+        @ApiResponse(responseCode = "404", description = "No se encontró el seguro a actualizar.")
+    })
     public ResponseEntity<Seguro> actualizarSeguro(
         @PathVariable("id") Long id,
         @RequestBody Seguro seguro
@@ -87,6 +104,10 @@ public class SeguroController {
         description = "Borra definitivamente el plan indicado y responde 204 al completar la operación. "
             + "Un identificador inexistente provoca una respuesta 404."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Seguro eliminado exitosamente."),
+        @ApiResponse(responseCode = "404", description = "Seguro no encontrado para eliminar.")
+    })
     public ResponseEntity<Void> eliminarSeguro(@PathVariable("id") Long id) {
         try {
             seguroService.deleteSeguro(id);
