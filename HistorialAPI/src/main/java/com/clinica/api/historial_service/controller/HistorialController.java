@@ -3,6 +3,9 @@ package com.clinica.api.historial_service.controller;
 import com.clinica.api.historial_service.model.Historial;
 import com.clinica.api.historial_service.service.HistorialService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +34,14 @@ public class HistorialController {
         description = "Provee el detalle clínico completo de un paciente específico, devolviendo 204 si aún no registra atenciones."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de historiales encontrada para el usuario."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Lista de historiales encontrada para el usuario.",
+            content = @Content(
+                mediaType = "application/json",
+                array = @ArraySchema(schema = @Schema(implementation = Historial.class))
+            )
+        ),
         @ApiResponse(responseCode = "204", description = "El usuario no tiene historiales registrados.")
     })
     public ResponseEntity<List<Historial>> getHistorialesByUsuarioId(@PathVariable("usuarioId") Long usuarioId) {
@@ -49,7 +59,14 @@ public class HistorialController {
             + "Cuando no tiene historiales, se responde 204."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de historiales encontrada para el doctor."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Lista de historiales encontrada para el doctor.",
+            content = @Content(
+                mediaType = "application/json",
+                array = @ArraySchema(schema = @Schema(implementation = Historial.class))
+            )
+        ),
         @ApiResponse(responseCode = "204", description = "El doctor no registra historiales.")
     })
     public ResponseEntity<List<Historial>> getHistorialesByDoctorId(@PathVariable("doctorId") Long doctorId) {
@@ -67,7 +84,14 @@ public class HistorialController {
             + "Si el identificador no existe, se devuelve 404 Not Found."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Historial encontrado y devuelto."),
+        @ApiResponse(
+            responseCode = "200",
+            description = "Historial encontrado y devuelto.",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = Historial.class)
+            )
+        ),
         @ApiResponse(responseCode = "404", description = "No existe un historial con el ID indicado.")
     })
     public ResponseEntity<Historial> getHistorialById(@PathVariable("id") Long id) {
