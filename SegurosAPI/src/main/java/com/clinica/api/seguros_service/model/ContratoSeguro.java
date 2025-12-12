@@ -1,17 +1,32 @@
 package com.clinica.api.seguros_service.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "contratoseguro")
+@Table(name = "ContratoSeguro")
 public class ContratoSeguro {
+
+    public enum MetodoPago {
+        Débito, Crédito, Transferencia
+    }
+
+    public enum EstadoContrato {
+        ACTIVO, CANCELADO
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,40 +39,40 @@ public class ContratoSeguro {
     @Column(name = "id_usuario", nullable = false)
     private Long idUsuario;
 
-    @Column(name = "rut_beneficiarios", nullable = false, length = 100)
-    private String rutBeneficiarios;
-
-    @Column(name = "nombre_beneficiarios", nullable = false, length = 200)
-    private String nombreBeneficiarios;
-
-    @Column(name = "fecha_nacimiento_beneficiarios", nullable = false, length = 80)
-    private String fechaNacimientoBeneficiarios;
-
     @Column(name = "correo_contacto", nullable = false, length = 100)
     private String correoContacto;
 
-    @Column(name = "telefono_contacto", nullable = false, length = 15)
+    @Column(name = "telefono_contacto", nullable = false, length = 20)
     private String telefonoContacto;
 
-    @Column(name = "metodo_pago", nullable = false, length = 50)
-    private String metodoPago;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metodo_pago", nullable = false, length = 20)
+    private MetodoPago metodoPago;
 
     @Column(name = "fecha_contratacion", nullable = false)
-    private LocalDateTime fechaContratacion;
+    private LocalDate fechaContratacion;
 
     @Column(name = "fecha_cancelacion")
-    private LocalDateTime fechaCancelacion;
+    private LocalDate fechaCancelacion;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)
-    private String estado = "ACTIVO";
+    private EstadoContrato estado = EstadoContrato.ACTIVO;
+
+    @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<BeneficiarioContrato> beneficiarios = new ArrayList<>();
 
     @PrePersist
-    void prePersist() {
+    void ensureDefaults() {
         if (fechaContratacion == null) {
-            fechaContratacion = LocalDateTime.now();
+            fechaContratacion = LocalDate.now();
         }
         if (estado == null) {
-            estado = "ACTIVO";
+            estado = EstadoContrato.ACTIVO;
+        }
+        if (beneficiarios != null) {
+            beneficiarios.forEach(b -> b.setContrato(this));
         }
     }
 
@@ -85,30 +100,6 @@ public class ContratoSeguro {
         this.idUsuario = idUsuario;
     }
 
-    public String getRutBeneficiarios() {
-        return rutBeneficiarios;
-    }
-
-    public void setRutBeneficiarios(String rutBeneficiarios) {
-        this.rutBeneficiarios = rutBeneficiarios;
-    }
-
-    public String getNombreBeneficiarios() {
-        return nombreBeneficiarios;
-    }
-
-    public void setNombreBeneficiarios(String nombreBeneficiarios) {
-        this.nombreBeneficiarios = nombreBeneficiarios;
-    }
-
-    public String getFechaNacimientoBeneficiarios() {
-        return fechaNacimientoBeneficiarios;
-    }
-
-    public void setFechaNacimientoBeneficiarios(String fechaNacimientoBeneficiarios) {
-        this.fechaNacimientoBeneficiarios = fechaNacimientoBeneficiarios;
-    }
-
     public String getCorreoContacto() {
         return correoContacto;
     }
@@ -125,35 +116,43 @@ public class ContratoSeguro {
         this.telefonoContacto = telefonoContacto;
     }
 
-    public String getMetodoPago() {
+    public MetodoPago getMetodoPago() {
         return metodoPago;
     }
 
-    public void setMetodoPago(String metodoPago) {
+    public void setMetodoPago(MetodoPago metodoPago) {
         this.metodoPago = metodoPago;
     }
 
-    public LocalDateTime getFechaContratacion() {
+    public LocalDate getFechaContratacion() {
         return fechaContratacion;
     }
 
-    public void setFechaContratacion(LocalDateTime fechaContratacion) {
+    public void setFechaContratacion(LocalDate fechaContratacion) {
         this.fechaContratacion = fechaContratacion;
     }
 
-    public LocalDateTime getFechaCancelacion() {
+    public LocalDate getFechaCancelacion() {
         return fechaCancelacion;
     }
 
-    public void setFechaCancelacion(LocalDateTime fechaCancelacion) {
+    public void setFechaCancelacion(LocalDate fechaCancelacion) {
         this.fechaCancelacion = fechaCancelacion;
     }
 
-    public String getEstado() {
+    public EstadoContrato getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoContrato estado) {
         this.estado = estado;
+    }
+
+    public List<BeneficiarioContrato> getBeneficiarios() {
+        return beneficiarios;
+    }
+
+    public void setBeneficiarios(List<BeneficiarioContrato> beneficiarios) {
+        this.beneficiarios = beneficiarios;
     }
 }

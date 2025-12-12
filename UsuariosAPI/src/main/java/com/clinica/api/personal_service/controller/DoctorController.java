@@ -1,7 +1,7 @@
 package com.clinica.api.personal_service.controller;
 
 import com.clinica.api.personal_service.dto.DoctorResponse;
-import com.clinica.api.personal_service.model.Empleado;
+import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
 import com.clinica.api.personal_service.service.EspecialidadService;
 import com.clinica.api.personal_service.service.PersonalService;
@@ -41,7 +41,7 @@ public class DoctorController {
         description = "Entrega el listado filtrado sólo con doctores vigentes e incluye los datos económico-laborales y la especialidad principal."
     )
     public ResponseEntity<List<DoctorResponse>> getAllDoctores() {
-        List<Empleado> doctores = personalService.findAllDoctores();
+        List<Doctor> doctores = personalService.findAllDoctores();
         if (doctores.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -58,7 +58,7 @@ public class DoctorController {
     )
     public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable("id") Long id) {
         try {
-            Empleado doctor = personalService.findDoctorById(id);
+            Doctor doctor = personalService.findDoctorById(id);
             return ResponseEntity.ok(mapToResponse(doctor));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
@@ -70,8 +70,11 @@ public class DoctorController {
         summary = "Crea un nuevo doctor.",
         description = "Registra un profesional con su información contractual y de usuario, respondiendo 201 al persistirlo."
     )
-    public ResponseEntity<DoctorResponse> createDoctor(@RequestBody Empleado doctor) {
-        Empleado nuevoDoctor = personalService.saveDoctor(requireDoctorPayload(doctor));
+    public ResponseEntity<DoctorResponse> createDoctor(@RequestBody Doctor doctor) {
+        if (!isValidDoctorPayload(doctor)) {
+            return ResponseEntity.badRequest().build();
+        }
+        Doctor nuevoDoctor = personalService.saveDoctor(requireDoctorPayload(doctor));
         return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(nuevoDoctor));
     }
 
@@ -82,11 +85,11 @@ public class DoctorController {
     )
     public ResponseEntity<DoctorResponse> updateDoctor(
         @PathVariable("id") Long id,
-        @RequestBody Empleado doctorDetails
+        @RequestBody Doctor doctorDetails
     ) {
         try {
-            Empleado existente = personalService.findDoctorById(id);
-            Empleado safeDetails = requireDoctorPayload(doctorDetails);
+            Doctor existente = personalService.findDoctorById(id);
+            Doctor safeDetails = requireDoctorPayload(doctorDetails);
             existente.setTarifaConsulta(safeDetails.getTarifaConsulta());
             existente.setSueldo(safeDetails.getSueldo());
             existente.setBono(safeDetails.getBono());
@@ -96,7 +99,10 @@ public class DoctorController {
             existente.setTelefono(safeDetails.getTelefono());
             existente.setFechaNacimiento(safeDetails.getFechaNacimiento());
             existente.setRol(safeDetails.getRol());
-            Empleado actualizado = personalService.saveDoctor(existente);
+            if (safeDetails.getEspecialidad() != null) {
+                existente.setEspecialidad(safeDetails.getEspecialidad());
+            }
+            Doctor actualizado = personalService.saveDoctor(existente);
             return ResponseEntity.ok(mapToResponse(actualizado));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
@@ -117,8 +123,8 @@ public class DoctorController {
         }
     }
 
-    private DoctorResponse mapToResponse(Empleado doctor) {
-        Empleado safeDoctor = Objects.requireNonNull(doctor, "Doctor entity must not be null");
+    private DoctorResponse mapToResponse(Doctor doctor) {
+        Doctor safeDoctor = Objects.requireNonNull(doctor, "Doctor entity must not be null");
         DoctorResponse response = new DoctorResponse();
         response.setId(safeDoctor.getId());
         response.setTarifaConsulta(safeDoctor.getTarifaConsulta());
@@ -146,7 +152,16 @@ public class DoctorController {
         return especialidades.get(0).getNombre();
     }
 
-    private Empleado requireDoctorPayload(Empleado doctor) {
+    private Doctor requireDoctorPayload(Doctor doctor) {
         return Objects.requireNonNull(doctor, "Doctor payload must not be null");
+    }
+
+    private boolean isValidDoctorPayload(Doctor doctor) {
+        return doctor != null
+            && doctor.getEspecialidad() != null
+            && doctor.getTarifaConsulta() != null
+            && doctor.getSueldo() != null
+            && doctor.getContrasena() != null
+            && !doctor.getContrasena().isBlank();
     }
 }

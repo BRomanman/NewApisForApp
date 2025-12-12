@@ -1,7 +1,6 @@
 package com.clinica.api.personal_service.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -12,8 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.clinica.api.personal_service.controller.EspecialidadController.EspecialidadRequest;
-import com.clinica.api.personal_service.model.Empleado;
-import com.clinica.api.personal_service.model.EmpleadoTipo;
+import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
 import com.clinica.api.personal_service.service.EspecialidadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -220,10 +218,9 @@ class EspecialidadControllerTest {
         return especialidad;
     }
 
-    private Empleado doctor() {
-        Empleado doctor = new Empleado();
+    private Doctor doctor() {
+        Doctor doctor = new Doctor();
         doctor.setId(5L);
-        doctor.setTipo(EmpleadoTipo.DOCTOR);
         doctor.setNombre("Doctor");
         return doctor;
     }

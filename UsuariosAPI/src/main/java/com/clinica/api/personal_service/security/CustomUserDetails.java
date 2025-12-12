@@ -1,7 +1,7 @@
 package com.clinica.api.personal_service.security;
 
-import com.clinica.api.personal_service.model.Empleado;
-import com.clinica.api.personal_service.model.EmpleadoTipo;
+import com.clinica.api.personal_service.model.Administrador;
+import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Usuario;
 import java.time.LocalDate;
 import java.util.Collection;
@@ -21,7 +21,6 @@ public final class CustomUserDetails implements UserDetails {
     private final LocalDate fechaNacimiento;
     private final String telefono;
     private final String roleName;
-    private final EmpleadoTipo tipo;
     private final Long doctorId;
     private final Collection<? extends GrantedAuthority> authorities;
 
@@ -34,7 +33,6 @@ public final class CustomUserDetails implements UserDetails {
         LocalDate fechaNacimiento,
         String telefono,
         String roleName,
-        EmpleadoTipo tipo,
         Long doctorId,
         Collection<? extends GrantedAuthority> authorities
     ) {
@@ -46,7 +44,6 @@ public final class CustomUserDetails implements UserDetails {
         this.fechaNacimiento = fechaNacimiento;
         this.telefono = telefono;
         this.roleName = roleName;
-        this.tipo = tipo;
         this.doctorId = doctorId;
         this.authorities = authorities;
     }
@@ -64,25 +61,40 @@ public final class CustomUserDetails implements UserDetails {
             usuario.getTelefono(),
             rol,
             null,
-            null,
             buildAuthorities(rol)
         );
     }
 
-    public static CustomUserDetails fromEmpleado(Empleado empleado) {
-        Objects.requireNonNull(empleado, "Empleado must not be null");
-        String rol = empleado.getRol() != null ? empleado.getRol().getNombre() : "doctor";
+    public static CustomUserDetails fromDoctor(Doctor doctor) {
+        Objects.requireNonNull(doctor, "Doctor must not be null");
+        String rol = doctor.getRol() != null ? doctor.getRol().getNombre() : "doctor";
         return new CustomUserDetails(
-            empleado.getId(),
-            empleado.getCorreo(),
-            empleado.getContrasena(),
-            empleado.getNombre(),
-            empleado.getApellido(),
-            empleado.getFechaNacimiento(),
-            empleado.getTelefono(),
+            doctor.getId(),
+            doctor.getCorreo(),
+            doctor.getContrasena(),
+            doctor.getNombre(),
+            doctor.getApellido(),
+            doctor.getFechaNacimiento(),
+            doctor.getTelefono(),
             rol,
-            empleado.getTipo(),
-            empleado.getTipo() == EmpleadoTipo.DOCTOR ? empleado.getId() : null,
+            doctor.getId(),
+            buildAuthorities(rol)
+        );
+    }
+
+    public static CustomUserDetails fromAdministrador(Administrador administrador) {
+        Objects.requireNonNull(administrador, "Administrador must not be null");
+        String rol = administrador.getRol() != null ? administrador.getRol().getNombre() : "administrador";
+        return new CustomUserDetails(
+            administrador.getId(),
+            administrador.getCorreo(),
+            administrador.getContrasena(),
+            administrador.getNombre(),
+            administrador.getApellido(),
+            administrador.getFechaNacimiento(),
+            administrador.getTelefono(),
+            rol,
+            null,
             buildAuthorities(rol)
         );
     }
@@ -106,10 +118,6 @@ public final class CustomUserDetails implements UserDetails {
 
     public String getRoleName() {
         return roleName;
-    }
-
-    public EmpleadoTipo getTipo() {
-        return tipo;
     }
 
     public Long getDoctorId() {

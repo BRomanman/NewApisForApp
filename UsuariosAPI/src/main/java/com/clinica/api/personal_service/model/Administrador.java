@@ -1,30 +1,40 @@
 package com.clinica.api.personal_service.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "Usuarios")
-public class Usuario {
+@Table(name = "Administradores")
+public class Administrador {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_usuario")
+    @Column(name = "id_admin")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 60)
     private String nombre;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String apellido;
 
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
-    @Column
+    @Column(length = 20)
     private String telefono;
 
     @Column(nullable = false, length = 255)
@@ -34,11 +44,21 @@ public class Usuario {
     @Column(name = "foto_perfil")
     private byte[] fotoPerfil;
 
+    @Column(nullable = false)
+    private Long sueldo;
+
+    @Column(nullable = false)
+    private Boolean activo = true;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
-    public Usuario() {
+    @PrePersist
+    void ensureDefaults() {
+        if (activo == null) {
+            activo = true;
+        }
     }
 
     public Long getId() {
@@ -103,6 +123,22 @@ public class Usuario {
 
     public void setFotoPerfil(byte[] fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
+    }
+
+    public Long getSueldo() {
+        return sueldo;
+    }
+
+    public void setSueldo(Long sueldo) {
+        this.sueldo = sueldo;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public Rol getRol() {

@@ -1,42 +1,62 @@
 package com.clinica.api.personal_service.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
+/**
+ * Representa la tabla Doctores.
+ */
 @Entity
-@Table(name = "Empleados")
-public class Empleado {
+@Table(name = "Doctores")
+public class Doctor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_trabajador")
+    @Column(name = "id_doctor")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 60)
     private String nombre;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String apellido;
 
     @Column(name = "fecha_nacimiento", nullable = false)
     private LocalDate fechaNacimiento;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
-    @Column
+    @Column(length = 20)
     private String telefono;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String contrasena;
+
+    @Lob
+    @Column(name = "foto_perfil")
+    private byte[] fotoPerfil;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
-    @Convert(converter = EmpleadoTipo.ConverterImpl.class)
-    @Column(name = "tipo", nullable = false)
-    private EmpleadoTipo tipo;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_especialidad", nullable = false)
+    private Especialidad especialidad;
+
+    @Column(name = "tarifa_consulta", nullable = false)
+    private Integer tarifaConsulta;
 
     @Column(nullable = false)
     private Long sueldo;
@@ -47,14 +67,7 @@ public class Empleado {
     @Column(nullable = false)
     private Boolean activo = true;
 
-    @Column(name = "tarifa_consulta")
-    private Integer tarifaConsulta;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_especialidad")
-    private Especialidad especialidad;
-
-    public Empleado() {
+    public Doctor() {
     }
 
     @PrePersist
@@ -120,6 +133,14 @@ public class Empleado {
         this.contrasena = contrasena;
     }
 
+    public byte[] getFotoPerfil() {
+        return fotoPerfil;
+    }
+
+    public void setFotoPerfil(byte[] fotoPerfil) {
+        this.fotoPerfil = fotoPerfil;
+    }
+
     public Rol getRol() {
         return rol;
     }
@@ -128,12 +149,20 @@ public class Empleado {
         this.rol = rol;
     }
 
-    public EmpleadoTipo getTipo() {
-        return tipo;
+    public Especialidad getEspecialidad() {
+        return especialidad;
     }
 
-    public void setTipo(EmpleadoTipo tipo) {
-        this.tipo = tipo;
+    public void setEspecialidad(Especialidad especialidad) {
+        this.especialidad = especialidad;
+    }
+
+    public Integer getTarifaConsulta() {
+        return tarifaConsulta;
+    }
+
+    public void setTarifaConsulta(Integer tarifaConsulta) {
+        this.tarifaConsulta = tarifaConsulta;
     }
 
     public Long getSueldo() {
@@ -158,21 +187,5 @@ public class Empleado {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
-    }
-
-    public Integer getTarifaConsulta() {
-        return tarifaConsulta;
-    }
-
-    public void setTarifaConsulta(Integer tarifaConsulta) {
-        this.tarifaConsulta = tarifaConsulta;
-    }
-
-    public Especialidad getEspecialidad() {
-        return especialidad;
-    }
-
-    public void setEspecialidad(Especialidad especialidad) {
-        this.especialidad = especialidad;
     }
 }

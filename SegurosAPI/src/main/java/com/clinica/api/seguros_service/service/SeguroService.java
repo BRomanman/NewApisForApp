@@ -2,11 +2,12 @@ package com.clinica.api.seguros_service.service;
 
 import com.clinica.api.seguros_service.model.ContratoSeguro;
 import com.clinica.api.seguros_service.model.Seguro;
+import com.clinica.api.seguros_service.model.BeneficiarioContrato;
 import com.clinica.api.seguros_service.repository.ContratoSeguroRepository;
 import com.clinica.api.seguros_service.repository.SeguroRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,10 @@ public class SeguroService {
     private final SeguroRepository seguroRepository;
     private final ContratoSeguroRepository contratoSeguroRepository;
 
-    public SeguroService(SeguroRepository seguroRepository, ContratoSeguroRepository contratoSeguroRepository) {
+    public SeguroService(
+        SeguroRepository seguroRepository,
+        ContratoSeguroRepository contratoSeguroRepository
+    ) {
         this.seguroRepository = seguroRepository;
         this.contratoSeguroRepository = contratoSeguroRepository;
     }
@@ -52,10 +56,16 @@ public class SeguroService {
     public ContratoSeguro createContrato(ContratoSeguro contrato) {
         contrato.setId(null);
         if (contrato.getFechaContratacion() == null) {
-            contrato.setFechaContratacion(LocalDateTime.now());
+            contrato.setFechaContratacion(LocalDate.now());
         }
         if (contrato.getEstado() == null) {
-            contrato.setEstado("ACTIVO");
+            contrato.setEstado(ContratoSeguro.EstadoContrato.ACTIVO);
+        }
+        if (contrato.getBeneficiarios() != null) {
+            for (BeneficiarioContrato beneficiario : contrato.getBeneficiarios()) {
+                beneficiario.setId(null);
+                beneficiario.setContrato(contrato);
+            }
         }
         return contratoSeguroRepository.save(contrato);
     }
@@ -78,8 +88,8 @@ public class SeguroService {
         if (contrato.getFechaCancelacion() != null) {
             return contrato;
         }
-        contrato.setEstado("CANCELADO");
-        contrato.setFechaCancelacion(LocalDateTime.now());
+        contrato.setEstado(ContratoSeguro.EstadoContrato.CANCELADO);
+        contrato.setFechaCancelacion(LocalDate.now());
         return contratoSeguroRepository.save(contrato);
     }
 }

@@ -2,8 +2,7 @@ package com.clinica.api.personal_service.controller;
 
 import com.clinica.api.personal_service.dto.EspecialidadResponse;
 import com.clinica.api.personal_service.model.Especialidad;
-import com.clinica.api.personal_service.model.Empleado;
-import com.clinica.api.personal_service.model.Empleado;
+import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.service.EspecialidadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -153,6 +152,8 @@ public class EspecialidadController {
         try {
             especialidadService.delete(id);
             return ResponseEntity.noContent().build();
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
@@ -163,7 +164,7 @@ public class EspecialidadController {
         EspecialidadResponse response = new EspecialidadResponse();
         response.setId(especialidad.getId());
         response.setNombre(especialidad.getNombre());
-        List<Empleado> doctores = especialidadService.findDoctoresPorEspecialidad(especialidad.getId());
+        List<Doctor> doctores = especialidadService.findDoctoresPorEspecialidad(especialidad.getId());
         response.setDoctorId(doctores.isEmpty() ? null : doctores.get(0).getId());
         return response;
     }

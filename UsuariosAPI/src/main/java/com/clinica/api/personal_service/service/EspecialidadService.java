@@ -1,9 +1,8 @@
 package com.clinica.api.personal_service.service;
 
-import com.clinica.api.personal_service.model.Empleado;
-import com.clinica.api.personal_service.model.EmpleadoTipo;
+import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
-import com.clinica.api.personal_service.repository.EmpleadoRepository;
+import com.clinica.api.personal_service.repository.DoctorRepository;
 import com.clinica.api.personal_service.repository.EspecialidadRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -16,18 +15,18 @@ import org.springframework.stereotype.Service;
 public class EspecialidadService {
 
     private final EspecialidadRepository especialidadRepository;
-    private final EmpleadoRepository empleadoRepository;
+    private final DoctorRepository doctorRepository;
 
     public EspecialidadService(
         EspecialidadRepository especialidadRepository,
-        EmpleadoRepository empleadoRepository
+        DoctorRepository doctorRepository
     ) {
         this.especialidadRepository = especialidadRepository;
-        this.empleadoRepository = empleadoRepository;
+        this.doctorRepository = doctorRepository;
     }
 
     public List<Especialidad> findByDoctorId(Long doctorId) {
-        Empleado doctor = findDoctor(doctorId);
+        Doctor doctor = findDoctor(doctorId);
         Especialidad especialidad = doctor.getEspecialidad();
         return especialidad != null ? List.of(especialidad) : List.of();
     }
@@ -35,7 +34,7 @@ public class EspecialidadService {
     public Especialidad createForDoctor(Long doctorId, String nombreEspecialidad) {
         String nombre = Objects.requireNonNull(nombreEspecialidad, "El nombre de la especialidad es requerido")
             .trim();
-        Empleado doctor = findDoctor(doctorId);
+        Doctor doctor = findDoctor(doctorId);
         Especialidad especialidad = especialidadRepository.findByNombreIgnoreCase(nombre)
             .orElseGet(() -> {
                 Especialidad nueva = new Especialidad();
@@ -43,7 +42,7 @@ public class EspecialidadService {
                 return especialidadRepository.save(nueva);
             });
         doctor.setEspecialidad(especialidad);
-        empleadoRepository.save(doctor);
+        doctorRepository.save(doctor);
         return especialidad;
     }
 
@@ -62,34 +61,29 @@ public class EspecialidadService {
             especialidad.setNombre(nombre.trim());
         }
         if (doctorId != null) {
-            Empleado doctor = findDoctor(doctorId);
+            Doctor doctor = findDoctor(doctorId);
             doctor.setEspecialidad(especialidad);
-            empleadoRepository.save(doctor);
+            doctorRepository.save(doctor);
         }
         return especialidadRepository.save(especialidad);
     }
 
     public void delete(Long id) {
         Especialidad especialidad = findById(id);
-        List<Empleado> asignados = empleadoRepository.findByEspecialidad(especialidad);
-        for (Empleado empleado : asignados) {
-            empleado.setEspecialidad(null);
+        List<Doctor> asignados = doctorRepository.findByEspecialidadAndActivoTrue(especialidad);
+        if (!asignados.isEmpty()) {
+            throw new IllegalStateException("La especialidad tiene doctores asociados");
         }
-        empleadoRepository.saveAll(asignados);
         especialidadRepository.delete(especialidad);
     }
 
-    private Empleado findDoctor(Long doctorId) {
-        Empleado doctor = empleadoRepository.findByIdAndActivoTrue(doctorId)
+    private Doctor findDoctor(Long doctorId) {
+        return doctorRepository.findByIdAndActivoTrue(doctorId)
             .orElseThrow(() -> new EntityNotFoundException("Doctor no encontrado"));
-        if (doctor.getTipo() != EmpleadoTipo.DOCTOR) {
-            throw new EntityNotFoundException("Doctor no encontrado");
-        }
-        return doctor;
     }
 
-    public List<Empleado> findDoctoresPorEspecialidad(Long especialidadId) {
+    public List<Doctor> findDoctoresPorEspecialidad(Long especialidadId) {
         Especialidad especialidad = findById(especialidadId);
-        return empleadoRepository.findByEspecialidad(especialidad);
+        return doctorRepository.findByEspecialidadAndActivoTrue(especialidad);
     }
 }

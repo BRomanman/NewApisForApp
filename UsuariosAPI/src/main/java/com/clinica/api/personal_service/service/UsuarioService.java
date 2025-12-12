@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.clinica.api.personal_service.repository.RolRepository;
 
 @Service
 @Transactional
@@ -19,10 +20,16 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(
+        UsuarioRepository usuarioRepository,
+        PasswordEncoder passwordEncoder,
+        RolRepository rolRepository
+    ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.rolRepository = rolRepository;
     }
 
     public List<UsuarioResponse> findAllUsuarios() {
@@ -44,6 +51,12 @@ public class UsuarioService {
         ensurePayloadNotAdmin(safeUsuario);
         if (safeUsuario.getContrasena() == null || safeUsuario.getContrasena().isBlank()) {
             throw new IllegalArgumentException("La contraseña es obligatoria");
+        }
+        if (safeUsuario.getRol() == null) {
+            rolRepository.findByNombreIgnoreCase("Paciente").ifPresent(safeUsuario::setRol);
+            if (safeUsuario.getRol() == null) {
+                throw new IllegalArgumentException("Rol Paciente no configurado");
+            }
         }
         safeUsuario.setContrasena(passwordEncoder.encode(safeUsuario.getContrasena()));
         return usuarioRepository.save(safeUsuario);

@@ -7,12 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.clinica.api.seguros_service.model.BeneficiarioContrato;
 import com.clinica.api.seguros_service.model.ContratoSeguro;
 import com.clinica.api.seguros_service.model.Seguro;
 import com.clinica.api.seguros_service.repository.ContratoSeguroRepository;
 import com.clinica.api.seguros_service.repository.SeguroRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -113,7 +114,7 @@ class SeguroServiceTest {
 
         assertThat(creado.getId()).isNull();
         assertThat(creado.getFechaContratacion()).isNotNull();
-        assertThat(creado.getEstado()).isEqualTo("ACTIVO");
+        assertThat(creado.getEstado()).isEqualTo(ContratoSeguro.EstadoContrato.ACTIVO);
         verify(contratoSeguroRepository).save(contrato);
     }
 
@@ -146,7 +147,7 @@ class SeguroServiceTest {
 
         ContratoSeguro cancelado = seguroService.cancelarContrato(1L);
 
-        assertThat(cancelado.getEstado()).isEqualTo("CANCELADO");
+        assertThat(cancelado.getEstado()).isEqualTo(ContratoSeguro.EstadoContrato.CANCELADO);
         assertThat(cancelado.getFechaCancelacion()).isNotNull();
         verify(contratoSeguroRepository).save(contrato);
     }
@@ -155,7 +156,7 @@ class SeguroServiceTest {
     @DisplayName("cancelarContrato retorna el contrato sin cambios si ya estaba cancelado")
     void cancelarContrato_returnsExistingWhenAlreadyCancelled() {
         ContratoSeguro contrato = contrato();
-        contrato.setFechaCancelacion(LocalDateTime.now());
+        contrato.setFechaCancelacion(LocalDate.now());
         when(contratoSeguroRepository.findById(4L)).thenReturn(Optional.of(contrato));
 
         ContratoSeguro resultado = seguroService.cancelarContrato(4L);
@@ -178,14 +179,19 @@ class SeguroServiceTest {
         contrato.setId(1L);
         contrato.setIdSeguro(5L);
         contrato.setIdUsuario(10L);
-        contrato.setRutBeneficiarios("11.111.111-1");
-        contrato.setNombreBeneficiarios("Juan Pérez");
-        contrato.setFechaNacimientoBeneficiarios("2000-01-01");
         contrato.setCorreoContacto("correo@demo.cl");
         contrato.setTelefonoContacto("+56911111111");
-        contrato.setMetodoPago("TARJETA");
-        contrato.setFechaContratacion(LocalDateTime.of(2024, 1, 1, 9, 0));
-        contrato.setEstado("ACTIVO");
+        contrato.setMetodoPago(ContratoSeguro.MetodoPago.Débito);
+        contrato.setFechaContratacion(LocalDate.of(2024, 1, 1));
+        contrato.setEstado(ContratoSeguro.EstadoContrato.ACTIVO);
+
+        BeneficiarioContrato beneficiario = new BeneficiarioContrato();
+        beneficiario.setId(1L);
+        beneficiario.setRut("11.111.111-1");
+        beneficiario.setNombre("Juan Perez");
+        beneficiario.setFechaNacimiento(LocalDate.of(2000, 1, 1));
+        beneficiario.setContrato(contrato);
+        contrato.setBeneficiarios(List.of(beneficiario));
         return contrato;
     }
 }

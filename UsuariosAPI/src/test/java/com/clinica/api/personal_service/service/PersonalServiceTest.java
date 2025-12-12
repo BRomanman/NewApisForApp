@@ -6,9 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.clinica.api.personal_service.model.Empleado;
-import com.clinica.api.personal_service.model.EmpleadoTipo;
-import com.clinica.api.personal_service.repository.EmpleadoRepository;
+import com.clinica.api.personal_service.model.Doctor;
+import com.clinica.api.personal_service.model.Rol;
+import com.clinica.api.personal_service.repository.DoctorRepository;
+import com.clinica.api.personal_service.repository.RolRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -17,12 +18,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class PersonalServiceTest {
 
     @Mock
-    private EmpleadoRepository empleadoRepository;
+    private DoctorRepository empleadoRepository;
+
+    @Mock
+    private RolRepository rolRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private PersonalService personalService;
@@ -30,10 +38,10 @@ class PersonalServiceTest {
     @Test
     @DisplayName("findDoctorById retorna el doctor cuando está activo")
     void findDoctorById_returnsEntity() {
-        Empleado doctor = doctor(true);
+        Doctor doctor = doctor(true);
         when(empleadoRepository.findByIdAndActivoTrue(1L)).thenReturn(Optional.of(doctor));
 
-        Empleado result = personalService.findDoctorById(1L);
+        Doctor result = personalService.findDoctorById(1L);
 
         assertThat(result).isSameAs(doctor);
     }
@@ -50,11 +58,11 @@ class PersonalServiceTest {
     @Test
     @DisplayName("saveDoctor asigna activo=true cuando no viene especificado")
     void saveDoctor_setsActiveDefault() {
-        Empleado doctor = doctor(null);
+        Doctor doctor = doctor(null);
         doctor.setActivo(null);
-        when(empleadoRepository.save(any(Empleado.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(empleadoRepository.save(any(Doctor.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Empleado saved = personalService.saveDoctor(doctor);
+        Doctor saved = personalService.saveDoctor(doctor);
 
         assertThat(saved.getActivo()).isTrue();
         verify(empleadoRepository).save(doctor);
@@ -63,7 +71,7 @@ class PersonalServiceTest {
     @Test
     @DisplayName("deleteDoctorById marca el doctor como inactivo")
     void deleteDoctorById_marksInactive() {
-        Empleado doctor = doctor(true);
+        Doctor doctor = doctor(true);
         when(empleadoRepository.findByIdAndActivoTrue(2L)).thenReturn(Optional.of(doctor));
 
         personalService.deleteDoctorById(2L);
@@ -72,11 +80,18 @@ class PersonalServiceTest {
         verify(empleadoRepository).save(doctor);
     }
 
-    private Empleado doctor(Boolean activo) {
-        Empleado doctor = new Empleado();
+    private Doctor doctor(Boolean activo) {
+        Doctor doctor = new Doctor();
         doctor.setId(1L);
         doctor.setActivo(activo);
-        doctor.setTipo(EmpleadoTipo.DOCTOR);
+        doctor.setRol(rol());
         return doctor;
+    }
+
+    private Rol rol() {
+        Rol rol = new Rol();
+        rol.setId(2L);
+        rol.setNombre("Doctor");
+        return rol;
     }
 }

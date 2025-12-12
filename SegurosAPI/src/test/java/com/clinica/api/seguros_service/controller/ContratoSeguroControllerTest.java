@@ -7,11 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.clinica.api.seguros_service.model.BeneficiarioContrato;
 import com.clinica.api.seguros_service.model.ContratoSeguro;
 import com.clinica.api.seguros_service.service.SeguroService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -97,7 +98,7 @@ class ContratoSeguroControllerTest {
     @DisplayName("POST /api/v1/seguros/contratos/{id}/cancelar responde 200 cuando se cancela correctamente")
     void cancelarContrato_returnsOk() throws Exception {
         ContratoSeguro contrato = contrato();
-        contrato.setEstado("CANCELADO");
+        contrato.setEstado(ContratoSeguro.EstadoContrato.CANCELADO);
         when(seguroService.cancelarContrato(1L)).thenReturn(contrato);
 
         mockMvc.perform(post("/api/v1/seguros/contratos/{id}/cancelar", 1L))
@@ -110,14 +111,19 @@ class ContratoSeguroControllerTest {
         contrato.setId(1L);
         contrato.setIdSeguro(5L);
         contrato.setIdUsuario(10L);
-        contrato.setRutBeneficiarios("11.111.111-1");
-        contrato.setNombreBeneficiarios("Juan Perez");
-        contrato.setFechaNacimientoBeneficiarios("2000-01-01");
         contrato.setCorreoContacto("correo@demo.cl");
         contrato.setTelefonoContacto("+56911111111");
-        contrato.setMetodoPago("TARJETA");
-        contrato.setFechaContratacion(LocalDateTime.of(2024, 1, 1, 10, 0));
-        contrato.setEstado("ACTIVO");
+        contrato.setMetodoPago(ContratoSeguro.MetodoPago.Débito);
+        contrato.setFechaContratacion(LocalDate.of(2024, 1, 1));
+        contrato.setEstado(ContratoSeguro.EstadoContrato.ACTIVO);
+
+        BeneficiarioContrato beneficiario = new BeneficiarioContrato();
+        beneficiario.setId(1L);
+        beneficiario.setRut("11.111.111-1");
+        beneficiario.setNombre("Juan Perez");
+        beneficiario.setFechaNacimiento(LocalDate.of(2000, 1, 1));
+        beneficiario.setContrato(contrato);
+        contrato.setBeneficiarios(List.of(beneficiario));
         return contrato;
     }
 }
