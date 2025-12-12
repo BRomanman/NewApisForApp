@@ -2,15 +2,17 @@ package com.clinica.api.personal_service.service;
 
 import com.clinica.api.personal_service.dto.UsuarioResponse;
 import com.clinica.api.personal_service.model.Usuario;
+import com.clinica.api.personal_service.repository.RolRepository;
 import com.clinica.api.personal_service.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.clinica.api.personal_service.repository.RolRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -89,6 +91,30 @@ public class UsuarioService {
         usuarioRepository.delete(usuario);
     }
 
+    public void actualizarFotoPerfilUsuario(Long id, MultipartFile file) {
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        ensureNotAdmin(usuario);
+        validateImageFile(file);
+        try {
+            usuario.setFotoPerfil(file.getBytes());
+        } catch (IOException ex) {
+            throw new IllegalStateException("Error al leer el archivo de imagen", ex);
+        }
+        usuarioRepository.save(usuario);
+    }
+
+    public byte[] obtenerFotoPerfilUsuario(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        ensureNotAdmin(usuario);
+        byte[] foto = usuario.getFotoPerfil();
+        if (foto == null || foto.length == 0) {
+            throw new EntityNotFoundException("Foto de perfil no encontrada");
+        }
+        return foto;
+    }
+
     private UsuarioResponse mapToResponse(Usuario usuarioInput) {
         Usuario usuario = Objects.requireNonNull(usuarioInput, "Usuario entity must not be null");
         UsuarioResponse r = new UsuarioResponse();
@@ -111,6 +137,16 @@ public class UsuarioService {
     private void ensurePayloadNotAdmin(Usuario usuario) {
         if (isAdmin(usuario)) {
             throw new IllegalArgumentException("No se permiten operaciones sobre administradores");
+        }
+    }
+
+    private void validateImageFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("El archivo de imagen es requerido");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("El archivo debe tener un tipo de imagen válido");
         }
     }
 

@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +18,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1/usuarios")
@@ -51,6 +55,41 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponse> getUsuarioById(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(usuarioService.findUsuarioById(id));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/foto-perfil")
+    @Operation(
+        summary = "Sube o actualiza la foto de perfil del usuario.",
+        description = "Guarda la imagen enviada como multipart y reemplaza la foto existente en la tabla Usuarios."
+    )
+    public ResponseEntity<Void> actualizarFotoPerfilUsuario(
+        @PathVariable("id") Long id,
+        @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            usuarioService.actualizarFotoPerfilUsuario(id, file);
+            return ResponseEntity.noContent().build();
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
+    }
+
+    @GetMapping("/{id}/foto-perfil")
+    @Operation(
+        summary = "Descarga la foto de perfil del usuario.",
+        description = "Retorna los bytes almacenados en la columna foto_perfil para que la app pueda mostrarlos."
+    )
+    public ResponseEntity<byte[]> obtenerFotoPerfilUsuario(@PathVariable("id") Long id) {
+        try {
+            byte[] foto = usuarioService.obtenerFotoPerfilUsuario(id);
+            return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(foto);
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }

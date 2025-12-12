@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1/doctores")
@@ -60,6 +64,41 @@ public class DoctorController {
         try {
             Doctor doctor = personalService.findDoctorById(id);
             return ResponseEntity.ok(mapToResponse(doctor));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/foto-perfil")
+    @Operation(
+        summary = "Sube o reemplaza la foto del doctor.",
+        description = "Recibe la imagen como multipart y la almacena en la columna foto_perfil de Doctores."
+    )
+    public ResponseEntity<Void> actualizarFotoPerfilDoctor(
+        @PathVariable("id") Long id,
+        @RequestParam("file") MultipartFile file
+    ) {
+        try {
+            personalService.actualizarFotoPerfilDoctor(id, file);
+            return ResponseEntity.noContent().build();
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
+    }
+
+    @GetMapping("/{id}/foto-perfil")
+    @Operation(
+        summary = "Descarga la foto del doctor.",
+        description = "Retorna los bytes almacenados para que el frontend pueda renderizar el perfil."
+    )
+    public ResponseEntity<byte[]> obtenerFotoPerfilDoctor(@PathVariable("id") Long id) {
+        try {
+            byte[] foto = personalService.obtenerFotoPerfilDoctor(id);
+            return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(foto);
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
