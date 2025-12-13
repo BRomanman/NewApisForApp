@@ -1,15 +1,20 @@
 package com.clinica.api.personal_service.controller;
 
+import com.clinica.api.personal_service.dto.AdministradorDto;
+import com.clinica.api.personal_service.dto.AdministradorUpdateRequestDto;
 import com.clinica.api.personal_service.service.AdministradorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +30,41 @@ public class AdministradorController {
 
     public AdministradorController(AdministradorService administradorService) {
         this.administradorService = administradorService;
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "Obtiene un administrador por su identificador.",
+        description = "Devuelve los datos básicos del administrador para el panel móvil."
+    )
+    public ResponseEntity<AdministradorDto> getAdminById(@PathVariable("id") Long id) {
+        return administradorService.findByIdDto(id)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Administrador no encontrado con id " + id
+            ));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(
+        summary = "Actualiza los datos de un administrador.",
+        description = "Permite modificar campos personales y salariales del administrador."
+    )
+    public ResponseEntity<AdministradorDto> updateAdmin(
+        @PathVariable("id") Long id,
+        @RequestBody @Valid AdministradorUpdateRequestDto request
+    ) {
+        try {
+            AdministradorDto updated = administradorService.update(id, request);
+            return ResponseEntity.ok(updated);
+        } catch (EntityNotFoundException ex) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Administrador no encontrado con id " + id,
+                ex
+            );
+        }
     }
 
     @PostMapping("/{id}/foto-perfil")
