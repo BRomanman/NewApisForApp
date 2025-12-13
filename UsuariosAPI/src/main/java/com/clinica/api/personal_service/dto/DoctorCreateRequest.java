@@ -1,31 +1,44 @@
 package com.clinica.api.personal_service.dto;
 
-import java.time.LocalDate;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
- * DTO que expone los valores mínimos que necesita AdminAddDoctorScreen.
+ * DTO que refleja el contrato que utiliza el cliente Android al crear doctores.
  */
-public class DoctorResponse {
+public class DoctorCreateRequest {
 
-    private Long idDoctor;
+    @NotBlank
     private String nombre;
+
+    @NotBlank
     private String apellido;
+
+    @NotBlank
+    private String fechaNacimiento; // yyyy-MM-dd
+
+    @NotBlank
     private String correo;
+
     private String telefono;
+
+    @NotBlank
+    private String contrasena;
+
+    private Long idRol;
+
+    @NotNull
     private Long idEspecialidad;
+
+    @NotNull
     private Integer tarifaConsulta;
+
+    @NotNull
     private Long sueldo;
+
     private Long bono;
+
     private Boolean activo;
-    private LocalDate fechaNacimiento;
-
-    public Long getIdDoctor() {
-        return idDoctor;
-    }
-
-    public void setIdDoctor(Long idDoctor) {
-        this.idDoctor = idDoctor;
-    }
 
     public String getNombre() {
         return nombre;
@@ -43,6 +56,14 @@ public class DoctorResponse {
         this.apellido = apellido;
     }
 
+    public String getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(String fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
     public String getCorreo() {
         return correo;
     }
@@ -57,6 +78,22 @@ public class DoctorResponse {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
+    }
+
+    public Long getIdRol() {
+        return idRol;
+    }
+
+    public void setIdRol(Long idRol) {
+        this.idRol = idRol;
     }
 
     public Long getIdEspecialidad() {
@@ -97,13 +134,5 @@ public class DoctorResponse {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
-    }
-
-    public LocalDate getFechaNacimiento() {
-        return fechaNacimiento;
-    }
-
-    public void setFechaNacimiento(LocalDate fechaNacimiento) {
-        this.fechaNacimiento = fechaNacimiento;
     }
 }

@@ -13,6 +13,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     List<Doctor> findByActivoTrue();
     Optional<Doctor> findByIdAndActivoTrue(Long id);
     Optional<Doctor> findByCorreoAndActivoTrue(String correo);
+    Optional<Doctor> findByCorreo(String correo);
 
     List<Doctor> findByEspecialidad(Especialidad especialidad);
 

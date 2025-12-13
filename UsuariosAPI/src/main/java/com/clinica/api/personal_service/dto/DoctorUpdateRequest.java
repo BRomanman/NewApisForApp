@@ -1,31 +1,40 @@
 package com.clinica.api.personal_service.dto;
 
-import java.time.LocalDate;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
- * DTO que expone los valores mínimos que necesita AdminAddDoctorScreen.
+ * DTO usado para actualizar los datos que la app Android permite modificar.
  */
-public class DoctorResponse {
+public class DoctorUpdateRequest {
 
-    private Long idDoctor;
+    @NotBlank
     private String nombre;
+
+    @NotBlank
     private String apellido;
+
+    @NotBlank
+    private String fechaNacimiento;
+
+    @NotBlank
     private String correo;
+
     private String telefono;
+
+    @NotNull
     private Long idEspecialidad;
+
+    @NotNull
     private Integer tarifaConsulta;
+
+    @NotNull
     private Long sueldo;
+
     private Long bono;
+
+    @NotNull
     private Boolean activo;
-    private LocalDate fechaNacimiento;
-
-    public Long getIdDoctor() {
-        return idDoctor;
-    }
-
-    public void setIdDoctor(Long idDoctor) {
-        this.idDoctor = idDoctor;
-    }
 
     public String getNombre() {
         return nombre;
@@ -41,6 +50,14 @@ public class DoctorResponse {
 
     public void setApellido(String apellido) {
         this.apellido = apellido;
+    }
+
+    public String getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(String fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public String getCorreo() {
@@ -97,13 +114,5 @@ public class DoctorResponse {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
-    }
-
-    public LocalDate getFechaNacimiento() {
-        return fechaNacimiento;
-    }
-
-    public void setFechaNacimiento(LocalDate fechaNacimiento) {
-        this.fechaNacimiento = fechaNacimiento;
     }
 }

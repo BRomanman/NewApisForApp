@@ -1,13 +1,14 @@
 package com.clinica.api.personal_service.controller;
 
+import com.clinica.api.personal_service.dto.DoctorCreateRequest;
 import com.clinica.api.personal_service.dto.DoctorResponse;
+import com.clinica.api.personal_service.dto.DoctorUpdateRequest;
 import com.clinica.api.personal_service.model.Doctor;
-import com.clinica.api.personal_service.model.Especialidad;
-import com.clinica.api.personal_service.service.EspecialidadService;
 import com.clinica.api.personal_service.service.PersonalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -32,17 +33,15 @@ import org.springframework.web.server.ResponseStatusException;
 public class DoctorController {
 
     private final PersonalService personalService;
-    private final EspecialidadService especialidadService;
 
-    public DoctorController(PersonalService personalService, EspecialidadService especialidadService) {
+    public DoctorController(PersonalService personalService) {
         this.personalService = personalService;
-        this.especialidadService = especialidadService;
     }
 
     @GetMapping
     @Operation(
         summary = "Lista los doctores activos.",
-        description = "Entrega el listado filtrado sólo con doctores vigentes e incluye los datos económico-laborales y la especialidad principal."
+        description = "Entrega el listado filtrado sólo con doctores vigentes e incluye los datos contractuales para el admin."
     )
     public ResponseEntity<List<DoctorResponse>> getAllDoctores() {
         List<Doctor> doctores = personalService.findAllDoctores();
@@ -104,17 +103,19 @@ public class DoctorController {
         }
     }
 
+    // Consume el DoctorCreateRequest que envía AdminAddDoctorViewModel para mantener el contrato JSON.
     @PostMapping
     @Operation(
         summary = "Crea un nuevo doctor.",
         description = "Registra un profesional con su información contractual y de usuario, respondiendo 201 al persistirlo."
     )
-    public ResponseEntity<DoctorResponse> createDoctor(@RequestBody Doctor doctor) {
-        if (!isValidDoctorPayload(doctor)) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<DoctorResponse> createDoctor(@RequestBody @Valid DoctorCreateRequest request) {
+        try {
+            Doctor nuevoDoctor = personalService.createDoctor(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(nuevoDoctor));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
         }
-        Doctor nuevoDoctor = personalService.saveDoctor(requireDoctorPayload(doctor));
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(nuevoDoctor));
     }
 
     @PutMapping("/{id}")
@@ -124,27 +125,15 @@ public class DoctorController {
     )
     public ResponseEntity<DoctorResponse> updateDoctor(
         @PathVariable("id") Long id,
-        @RequestBody Doctor doctorDetails
+        @RequestBody @Valid DoctorUpdateRequest request
     ) {
         try {
-            Doctor existente = personalService.findDoctorById(id);
-            Doctor safeDetails = requireDoctorPayload(doctorDetails);
-            existente.setTarifaConsulta(safeDetails.getTarifaConsulta());
-            existente.setSueldo(safeDetails.getSueldo());
-            existente.setBono(safeDetails.getBono());
-            existente.setNombre(safeDetails.getNombre());
-            existente.setApellido(safeDetails.getApellido());
-            existente.setCorreo(safeDetails.getCorreo());
-            existente.setTelefono(safeDetails.getTelefono());
-            existente.setFechaNacimiento(safeDetails.getFechaNacimiento());
-            existente.setRol(safeDetails.getRol());
-            if (safeDetails.getEspecialidad() != null) {
-                existente.setEspecialidad(safeDetails.getEspecialidad());
-            }
-            Doctor actualizado = personalService.saveDoctor(existente);
+            Doctor actualizado = personalService.updateDoctor(id, request);
             return ResponseEntity.ok(mapToResponse(actualizado));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
         }
     }
 
@@ -162,45 +151,23 @@ public class DoctorController {
         }
     }
 
+    // Alineamos esta respuesta con el esquema Doctores y el contrato que usa AdminAddDoctorViewModel.
     private DoctorResponse mapToResponse(Doctor doctor) {
         Doctor safeDoctor = Objects.requireNonNull(doctor, "Doctor entity must not be null");
         DoctorResponse response = new DoctorResponse();
-        response.setId(safeDoctor.getId());
+        response.setIdDoctor(safeDoctor.getId());
+        response.setNombre(safeDoctor.getNombre());
+        response.setApellido(safeDoctor.getApellido());
+        response.setCorreo(safeDoctor.getCorreo());
+        response.setTelefono(safeDoctor.getTelefono());
         response.setTarifaConsulta(safeDoctor.getTarifaConsulta());
         response.setSueldo(safeDoctor.getSueldo());
         response.setBono(safeDoctor.getBono());
-        response.setEspecialidad(resolveEspecialidad(safeDoctor.getId()));
-
-        DoctorResponse.UsuarioInfo usuario = new DoctorResponse.UsuarioInfo();
-        usuario.setId(safeDoctor.getId());
-        usuario.setNombre(safeDoctor.getNombre());
-        usuario.setApellido(safeDoctor.getApellido());
-        usuario.setFechaNacimiento(safeDoctor.getFechaNacimiento());
-        usuario.setCorreo(safeDoctor.getCorreo());
-        usuario.setTelefono(safeDoctor.getTelefono());
-        usuario.setRol(safeDoctor.getRol() != null ? safeDoctor.getRol().getNombre() : null);
-        response.setUsuario(usuario);
-        return response;
-    }
-
-    private String resolveEspecialidad(Long doctorId) {
-        List<Especialidad> especialidades = especialidadService.findByDoctorId(doctorId);
-        if (especialidades.isEmpty()) {
-            return null;
+        response.setActivo(safeDoctor.getActivo());
+        response.setFechaNacimiento(safeDoctor.getFechaNacimiento());
+        if (safeDoctor.getEspecialidad() != null) {
+            response.setIdEspecialidad(safeDoctor.getEspecialidad().getId());
         }
-        return especialidades.get(0).getNombre();
-    }
-
-    private Doctor requireDoctorPayload(Doctor doctor) {
-        return Objects.requireNonNull(doctor, "Doctor payload must not be null");
-    }
-
-    private boolean isValidDoctorPayload(Doctor doctor) {
-        return doctor != null
-            && doctor.getEspecialidad() != null
-            && doctor.getTarifaConsulta() != null
-            && doctor.getSueldo() != null
-            && doctor.getContrasena() != null
-            && !doctor.getContrasena().isBlank();
+        return response;
     }
 }

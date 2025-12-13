@@ -10,10 +10,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.clinica.api.personal_service.dto.DoctorCreateRequest;
+import com.clinica.api.personal_service.dto.DoctorUpdateRequest;
 import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
 import com.clinica.api.personal_service.model.Rol;
-import com.clinica.api.personal_service.service.EspecialidadService;
 import com.clinica.api.personal_service.service.PersonalService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,21 +43,17 @@ class DoctorControllerTest {
     @MockBean
     private PersonalService personalService;
 
-    @MockBean
-    private EspecialidadService especialidadService;
-
     @Test
     @DisplayName("GET /api/v1/doctores responde 200 con la lista de doctores")
     void getAllDoctores_returnsOk() throws Exception {
         Doctor doctor = doctor();
         when(personalService.findAllDoctores()).thenReturn(List.of(doctor));
-        when(especialidadService.findByDoctorId(doctor.getId())).thenReturn(List.of(especialidad("Cardiología")));
 
         mockMvc.perform(get("/api/v1/doctores"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(1L))
-            .andExpect(jsonPath("$[0].especialidad").value("Cardiología"))
-            .andExpect(jsonPath("$[0].usuario.nombre").value("Ana"));
+            .andExpect(jsonPath("$[0].idDoctor").value(1L))
+            .andExpect(jsonPath("$[0].idEspecialidad").value(5L))
+            .andExpect(jsonPath("$[0].nombre").value("Ana"));
     }
 
     @Test
@@ -73,11 +70,10 @@ class DoctorControllerTest {
     void getDoctorById_returnsOk() throws Exception {
         Doctor doctor = doctor();
         when(personalService.findDoctorById(1L)).thenReturn(doctor);
-        when(especialidadService.findByDoctorId(doctor.getId())).thenReturn(List.of(especialidad("Cardiología")));
 
         mockMvc.perform(get("/api/v1/doctores/{id}", 1L))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.usuario.correo").value("ana@demo.com"));
+            .andExpect(jsonPath("$.correo").value("ana@demo.com"));
     }
 
     @Test
@@ -94,44 +90,53 @@ class DoctorControllerTest {
     void createDoctor_returnsCreated() throws Exception {
         Doctor created = doctor();
         created.setTarifaConsulta(40000);
-        when(personalService.saveDoctor(any(Doctor.class))).thenReturn(created);
-        when(especialidadService.findByDoctorId(created.getId())).thenReturn(List.of(especialidad("Cardiología")));
+        when(personalService.createDoctor(any(DoctorCreateRequest.class))).thenReturn(created);
 
         mockMvc.perform(post("/api/v1/doctores")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(doctorPayload())))
+                .content(objectMapper.writeValueAsString(doctorCreateRequest())))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.id").value(1L));
+            .andExpect(jsonPath("$.idDoctor").value(1L));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/doctores responde 400 cuando el correo ya existe")
+    void createDoctor_returnsBadRequestWhenEmailExists() throws Exception {
+        when(personalService.createDoctor(any(DoctorCreateRequest.class)))
+            .thenThrow(new IllegalArgumentException("Ya existe un doctor con ese correo"));
+
+        mockMvc.perform(post("/api/v1/doctores")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(doctorCreateRequest())))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("PUT /api/v1/doctores/{id} responde 200 cuando se actualiza correctamente")
     void updateDoctor_returnsOk() throws Exception {
         Doctor existente = doctor();
-        when(personalService.findDoctorById(1L)).thenReturn(existente);
-        when(personalService.saveDoctor(any(Doctor.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(especialidadService.findByDoctorId(existente.getId())).thenReturn(List.of(especialidad("Neurología")));
-
-        Doctor cambios = doctorPayload();
-        cambios.setTarifaConsulta(60000);
-        cambios.setSueldo(1500000L);
+        Doctor actualizado = doctor();
+        actualizado.setTarifaConsulta(60000);
+        actualizado.setSueldo(1500000L);
+        when(personalService.updateDoctor(1L, any(DoctorUpdateRequest.class))).thenReturn(actualizado);
 
         mockMvc.perform(put("/api/v1/doctores/{id}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(cambios)))
+                .content(objectMapper.writeValueAsString(doctorUpdateRequest())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.tarifaConsulta").value(60000))
-            .andExpect(jsonPath("$.especialidad").value("Neurología"));
+            .andExpect(jsonPath("$.idEspecialidad").value(5L));
     }
 
     @Test
     @DisplayName("PUT /api/v1/doctores/{id} responde 404 cuando el doctor no existe")
     void updateDoctor_returnsNotFound() throws Exception {
-        when(personalService.findDoctorById(88L)).thenThrow(new EntityNotFoundException("no existe"));
+        when(personalService.updateDoctor(88L, any(DoctorUpdateRequest.class)))
+            .thenThrow(new EntityNotFoundException("no existe"));
 
         mockMvc.perform(put("/api/v1/doctores/{id}", 88L)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(doctorPayload())))
+                .content(objectMapper.writeValueAsString(doctorUpdateRequest())))
             .andExpect(status().isNotFound());
     }
 
@@ -158,30 +163,45 @@ class DoctorControllerTest {
         doctor.setSueldo(1200000L);
         doctor.setBono(200000L);
         doctor.setNombre("Ana");
-        doctor.setApellido("Gómez");
+        doctor.setApellido("Gomez");
         doctor.setCorreo("ana@demo.com");
         doctor.setTelefono("+56999999999");
         doctor.setFechaNacimiento(LocalDate.of(1990, 5, 4));
         doctor.setContrasena("secreta");
         doctor.setRol(rol("doctor"));
-        doctor.setEspecialidad(especialidad("Cardiología"));
+        doctor.setEspecialidad(especialidad("Cardiologia"));
         return doctor;
     }
 
-    private Doctor doctorPayload() {
-        Doctor doctor = new Doctor();
-        doctor.setTarifaConsulta(50000);
-        doctor.setSueldo(1200000L);
-        doctor.setBono(150000L);
-        doctor.setNombre("Ana");
-        doctor.setApellido("Gómez");
-        doctor.setCorreo("ana@demo.com");
-        doctor.setTelefono("+56999999999");
-        doctor.setFechaNacimiento(LocalDate.of(1990, 5, 4));
-        doctor.setContrasena("secreta");
-        doctor.setRol(rol("doctor"));
-        doctor.setEspecialidad(especialidad("Cardiología"));
-        return doctor;
+    private DoctorUpdateRequest doctorUpdateRequest() {
+        DoctorUpdateRequest request = new DoctorUpdateRequest();
+        request.setNombre("Ana");
+        request.setApellido("Gomez");
+        request.setFechaNacimiento("1990-05-04");
+        request.setCorreo("ana@demo.com");
+        request.setTelefono("+56999999999");
+        request.setIdEspecialidad(5L);
+        request.setTarifaConsulta(50000);
+        request.setSueldo(1200000L);
+        request.setBono(150000L);
+        request.setActivo(true);
+        return request;
+    }
+    private DoctorCreateRequest doctorCreateRequest() {
+        DoctorCreateRequest request = new DoctorCreateRequest();
+        request.setNombre("Ana");
+        request.setApellido("Gomez");
+        request.setFechaNacimiento("1990-05-04");
+        request.setCorreo("ana@demo.com");
+        request.setTelefono("+56999999999");
+        request.setContrasena("secreta");
+        request.setIdRol(2L);
+        request.setIdEspecialidad(5L);
+        request.setTarifaConsulta(50000);
+        request.setSueldo(1200000L);
+        request.setBono(150000L);
+        request.setActivo(true);
+        return request;
     }
 
     private Rol rol(String nombre) {

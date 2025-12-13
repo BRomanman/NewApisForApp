@@ -24,6 +24,7 @@ public class Doctor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_doctor")
+    // id_doctor corresponde a la PK definida en el nuevo esquema de Doctores.
     private Long id;
 
     @Column(nullable = false, length = 60)
