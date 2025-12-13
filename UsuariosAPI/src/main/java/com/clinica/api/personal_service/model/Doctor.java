@@ -11,6 +11,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.sql.Blob;
 import java.time.LocalDate;
 
 /**
@@ -45,7 +46,7 @@ public class Doctor {
 
     @Lob
     @Column(name = "foto_perfil")
-    private byte[] fotoPerfil;
+    private Blob fotoPerfil;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
@@ -133,11 +134,11 @@ public class Doctor {
         this.contrasena = contrasena;
     }
 
-    public byte[] getFotoPerfil() {
+    public Blob getFotoPerfil() {
         return fotoPerfil;
     }
 
-    public void setFotoPerfil(byte[] fotoPerfil) {
+    public void setFotoPerfil(Blob fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
     }
 

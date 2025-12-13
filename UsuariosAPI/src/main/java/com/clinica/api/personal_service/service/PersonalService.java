@@ -6,10 +6,13 @@ import com.clinica.api.personal_service.repository.RolRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Service;
+import javax.sql.rowset.serial.SerialBlob;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -66,20 +69,30 @@ public class PersonalService {
         Doctor doctor = findDoctorById(id);
         validateImageFile(file);
         try {
-            doctor.setFotoPerfil(file.getBytes());
+            doctor.setFotoPerfil(new SerialBlob(file.getBytes()));
         } catch (IOException ex) {
             throw new IllegalStateException("Error al leer el archivo de imagen", ex);
+        } catch (SQLException ex) {
+            throw new IllegalStateException("Error al almacenar la foto de perfil", ex);
         }
         doctorRepository.save(doctor);
     }
 
     public byte[] obtenerFotoPerfilDoctor(Long id) {
         Doctor doctor = findDoctorById(id);
-        byte[] foto = doctor.getFotoPerfil();
-        if (foto == null || foto.length == 0) {
+        Blob foto = doctor.getFotoPerfil();
+        if (foto == null) {
             throw new EntityNotFoundException("Foto de perfil del doctor no encontrada");
         }
-        return foto;
+        try {
+            long length = foto.length();
+            if (length == 0) {
+                throw new EntityNotFoundException("Foto de perfil del doctor no encontrada");
+            }
+            return foto.getBytes(1, Math.toIntExact(length));
+        } catch (SQLException | ArithmeticException ex) {
+            throw new IllegalStateException("Error al leer la foto de perfil almacenada", ex);
+        }
     }
 
     private boolean shouldEncode(String contrasena) {

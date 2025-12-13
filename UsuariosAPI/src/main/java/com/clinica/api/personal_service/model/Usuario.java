@@ -1,6 +1,8 @@
 package com.clinica.api.personal_service.model;
 
 import jakarta.persistence.*;
+
+import java.sql.Blob;
 import java.time.LocalDate;
 
 @Entity
@@ -32,7 +34,7 @@ public class Usuario {
 
     @Lob
     @Column(name = "foto_perfil")
-    private byte[] fotoPerfil;
+    private Blob fotoPerfil;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_rol", nullable = false)
@@ -97,11 +99,11 @@ public class Usuario {
         this.contrasena = contrasena;
     }
 
-    public byte[] getFotoPerfil() {
+    public Blob getFotoPerfil() {
         return fotoPerfil;
     }
 
-    public void setFotoPerfil(byte[] fotoPerfil) {
+    public void setFotoPerfil(Blob fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
     }
 

@@ -11,6 +11,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.sql.Blob;
 import java.time.LocalDate;
 
 @Entity
@@ -42,7 +43,7 @@ public class Administrador {
 
     @Lob
     @Column(name = "foto_perfil")
-    private byte[] fotoPerfil;
+    private Blob fotoPerfil;
 
     @Column(nullable = false)
     private Long sueldo;
@@ -117,11 +118,11 @@ public class Administrador {
         this.contrasena = contrasena;
     }
 
-    public byte[] getFotoPerfil() {
+    public Blob getFotoPerfil() {
         return fotoPerfil;
     }
 
-    public void setFotoPerfil(byte[] fotoPerfil) {
+    public void setFotoPerfil(Blob fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
     }
 

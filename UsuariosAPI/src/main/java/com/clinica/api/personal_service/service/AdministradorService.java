@@ -7,8 +7,11 @@ import com.clinica.api.personal_service.repository.AdministradorRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
+import javax.sql.rowset.serial.SerialBlob;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,20 +29,30 @@ public class AdministradorService {
         Administrador administrador = findActiveAdministrador(id);
         validateImageFile(file);
         try {
-            administrador.setFotoPerfil(file.getBytes());
+            administrador.setFotoPerfil(new SerialBlob(file.getBytes()));
         } catch (IOException ex) {
             throw new IllegalStateException("Error al leer el archivo de imagen", ex);
+        } catch (SQLException ex) {
+            throw new IllegalStateException("Error al almacenar la foto de perfil", ex);
         }
         administradorRepository.save(administrador);
     }
 
     public byte[] obtenerFotoPerfilAdmin(Long id) {
         Administrador administrador = findActiveAdministrador(id);
-        byte[] foto = administrador.getFotoPerfil();
-        if (foto == null || foto.length == 0) {
+        Blob foto = administrador.getFotoPerfil();
+        if (foto == null) {
             throw new EntityNotFoundException("Foto de perfil del administrador no encontrada");
         }
-        return foto;
+        try {
+            long length = foto.length();
+            if (length == 0) {
+                throw new EntityNotFoundException("Foto de perfil del administrador no encontrada");
+            }
+            return foto.getBytes(1, Math.toIntExact(length));
+        } catch (SQLException | ArithmeticException ex) {
+            throw new IllegalStateException("Error al leer la foto de perfil almacenada", ex);
+        }
     }
 
     public Optional<AdministradorDto> findByIdDto(Long id) {
