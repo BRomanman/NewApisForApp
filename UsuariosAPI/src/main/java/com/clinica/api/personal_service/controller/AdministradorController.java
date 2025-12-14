@@ -1,7 +1,9 @@
 package com.clinica.api.personal_service.controller;
 
+import com.clinica.api.personal_service.dto.AdminPasswordChangeRequest;
 import com.clinica.api.personal_service.dto.AdministradorDto;
 import com.clinica.api.personal_service.dto.AdministradorUpdateRequestDto;
+import com.clinica.api.personal_service.service.AdminPasswordService;
 import com.clinica.api.personal_service.service.AdministradorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,9 +29,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class AdministradorController {
 
     private final AdministradorService administradorService;
+    private final AdminPasswordService adminPasswordService;
 
-    public AdministradorController(AdministradorService administradorService) {
+    public AdministradorController(
+        AdministradorService administradorService,
+        AdminPasswordService adminPasswordService
+    ) {
         this.administradorService = administradorService;
+        this.adminPasswordService = adminPasswordService;
     }
 
     @GetMapping("/{id}")
@@ -100,5 +107,18 @@ public class AdministradorController {
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PutMapping("/{id}/contrasena")
+    @Operation(
+        summary = "Actualiza la contraseña del administrador autenticado.",
+        description = "Valida la contraseña actual y la reemplaza por una nueva que cumpla las reglas."
+    )
+    public ResponseEntity<Void> cambiarContrasena(
+        @PathVariable("id") Long id,
+        @RequestBody @Valid AdminPasswordChangeRequest request
+    ) {
+        adminPasswordService.changePassword(id, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 }
