@@ -11,34 +11,45 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.clinica.api.personal_service.controller.EspecialidadController.EspecialidadRequest;
+import com.clinica.api.personal_service.exception.PersonalServiceExceptionHandler;
 import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
 import com.clinica.api.personal_service.service.EspecialidadService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-@WebMvcTest(EspecialidadController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class EspecialidadControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    @MockBean
+    @Mock
     private EspecialidadService especialidadService;
+
+    @InjectMocks
+    private EspecialidadController especialidadController;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(especialidadController)
+            .setControllerAdvice(new PersonalServiceExceptionHandler())
+            .build();
+    }
 
     @Test
     @DisplayName("GET /api/v1/doctores/{id}/especialidades responde 200 cuando hay registros")
@@ -78,7 +89,7 @@ class EspecialidadControllerTest {
         request.setNombre("");
 
         mockMvc.perform(post("/api/v1/doctores/{doctorId}/especialidades", 1L)
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsBytes(request)))
             .andExpect(status().isBadRequest());
     }

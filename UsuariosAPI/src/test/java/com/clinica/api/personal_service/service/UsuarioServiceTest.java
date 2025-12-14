@@ -2,7 +2,6 @@ package com.clinica.api.personal_service.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,13 +13,16 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import javax.sql.rowset.serial.SerialBlob;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceTest {
@@ -89,6 +91,54 @@ class UsuarioServiceTest {
         usuarioService.deleteUsuarioById(10L);
 
         verify(usuarioRepository).delete(usuario);
+    }
+
+    @Test
+    @DisplayName("actualizarFotoPerfilUsuario guarda el BLOB cuando el archivo es válido")
+    void actualizarFotoPerfilUsuario_storesBlob() throws Exception {
+        Usuario usuario = usuario(4L, "paciente");
+        when(usuarioRepository.findById(4L)).thenReturn(Optional.of(usuario));
+        MultipartFile file = new MockMultipartFile("file", "foto.jpg", "image/jpeg", new byte[] {1, 2, 3});
+
+        usuarioService.actualizarFotoPerfilUsuario(4L, file);
+
+        assertThat(usuario.getFotoPerfil()).isNotNull();
+        assertThat(usuario.getFotoPerfil().length()).isEqualTo(3);
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    @DisplayName("actualizarFotoPerfilUsuario rechaza archivos que no son imagen")
+    void actualizarFotoPerfilUsuario_rejectsNonImage() {
+        Usuario usuario = usuario(5L, "paciente");
+        when(usuarioRepository.findById(5L)).thenReturn(Optional.of(usuario));
+        MultipartFile file = new MockMultipartFile("file", "doc.txt", "text/plain", new byte[] {1, 2});
+
+        assertThatThrownBy(() -> usuarioService.actualizarFotoPerfilUsuario(5L, file))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("obtenerFotoPerfilUsuario retorna los bytes cuando existe la foto")
+    void obtenerFotoPerfilUsuario_returnsBytes() throws Exception {
+        Usuario usuario = usuario(6L, "paciente");
+        usuario.setFotoPerfil(new SerialBlob(new byte[] {9, 8}));
+        when(usuarioRepository.findById(6L)).thenReturn(Optional.of(usuario));
+
+        byte[] bytes = usuarioService.obtenerFotoPerfilUsuario(6L);
+
+        assertThat(bytes).containsExactly(9, 8);
+    }
+
+    @Test
+    @DisplayName("obtenerFotoPerfilUsuario lanza EntityNotFoundException cuando no hay foto")
+    void obtenerFotoPerfilUsuario_throwsWhenMissingPhoto() {
+        Usuario usuario = usuario(7L, "paciente");
+        usuario.setFotoPerfil(null);
+        when(usuarioRepository.findById(7L)).thenReturn(Optional.of(usuario));
+
+        assertThatThrownBy(() -> usuarioService.obtenerFotoPerfilUsuario(7L))
+            .isInstanceOf(EntityNotFoundException.class);
     }
 
     private Usuario usuario(Long id, String rolNombre) {

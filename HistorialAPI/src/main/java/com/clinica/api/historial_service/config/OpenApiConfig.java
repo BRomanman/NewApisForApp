@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Configuration;
     info = @Info(
         title = "Historial API",
         version = "1.0",
-        description = "Servicio REST para exponer el historial clínico de los usuarios.",
+        description = "Servicio REST para exponer historiales clínicos de usuarios y doctores.\n"
+            + "Códigos: 200 cuando existen registros, 204 sin historiales, 404 si el ID no existe y 500 para fallos internos. "
+            + "Los esquemas incluyen fechas, horas y diagnósticos/observaciones.",
         contact = @Contact(name = "Equipo Clínicas", email = "contacto@clinica.com")
     ),
     servers = {

@@ -42,7 +42,8 @@ public class AdministradorController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtiene un administrador por su identificador.",
-        description = "Devuelve los datos básicos del administrador para el panel móvil."
+        description = "Devuelve los datos básicos del administrador para el panel móvil. "
+            + "Puede devolver 200, 404 si no existe y 500 ante un fallo."
     )
     public ResponseEntity<AdministradorDto> getAdminById(@PathVariable("id") Long id) {
         return administradorService.findByIdDto(id)
@@ -56,7 +57,8 @@ public class AdministradorController {
     @PutMapping("/{id}")
     @Operation(
         summary = "Actualiza los datos de un administrador.",
-        description = "Permite modificar campos personales y salariales del administrador."
+        description = "Permite modificar campos personales y salariales del administrador. "
+            + "Puede responder 200 al actualizar, 404 si no existe, 400 o 500 cuando ocurre un problema."
     )
     public ResponseEntity<AdministradorDto> updateAdmin(
         @PathVariable("id") Long id,
@@ -77,7 +79,8 @@ public class AdministradorController {
     @PostMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Sube o actualiza la foto del administrador.",
-        description = "Guarda la imagen enviada como multipart en la columna foto_perfil de Administradores."
+        description = "Guarda la imagen enviada como multipart en la columna foto_perfil de Administradores. "
+            + "Puede devolver 204, 400 si el archivo no es válido, 404 si el admin no existe y 500 ante errores."
     )
     public ResponseEntity<Void> actualizarFotoPerfilAdmin(
         @PathVariable("id") Long id,
@@ -96,7 +99,8 @@ public class AdministradorController {
     @GetMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Descarga la foto del administrador.",
-        description = "Retorna la imagen almacenada para mostrar el perfil administrativo."
+        description = "Retorna la imagen almacenada para mostrar el perfil administrativo. "
+            + "Puede responder 200 con image/jpeg, 404 si no hay foto o registro y 500 si ocurre un fallo."
     )
     public ResponseEntity<byte[]> obtenerFotoPerfilAdmin(@PathVariable("id") Long id) {
         try {
@@ -112,7 +116,8 @@ public class AdministradorController {
     @PutMapping("/{id}/contrasena")
     @Operation(
         summary = "Actualiza la contraseña del administrador autenticado.",
-        description = "Valida la contraseña actual y la reemplaza por una nueva que cumpla las reglas."
+        description = "Valida la contraseña actual y la reemplaza por una nueva que cumpla las reglas. "
+            + "Puede devolver 204 al actualizar, 401 si la contraseña actual es incorrecta, 400 si la nueva no cumple requisitos, 404 si el admin no existe o 500 si hay un fallo."
     )
     public ResponseEntity<Void> cambiarContrasena(
         @PathVariable("id") Long id,

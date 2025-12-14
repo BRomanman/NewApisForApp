@@ -35,7 +35,7 @@ public class EspecialidadController {
     @GetMapping("/doctores/{doctorId}/especialidades")
     @Operation(
         summary = "Lista las especialidades asociadas a un doctor.",
-        description = "Permite conocer todas las áreas en las que un doctor atiende. Responde 204 si el profesional no tiene especialidades asignadas."
+        description = "Permite conocer todas las áreas en las que un doctor atiende. Puede responder 204 si el profesional no tiene especialidades, 404 si el doctor no existe y 500 ante un fallo."
     )
     public ResponseEntity<List<EspecialidadResponse>> getEspecialidadesByDoctor(
         @PathVariable("doctorId") Long doctorId
@@ -58,7 +58,7 @@ public class EspecialidadController {
     @Operation(
         summary = "Agrega una especialidad a un doctor.",
         description = "Crea una nueva relación entre doctor y especialidad y devuelve 201 con el recurso generado. "
-            + "Si el doctor o la información no son válidos, retorna 400 o 404 según corresponda."
+            + "Si el doctor o la información no son válidos, retorna 400 o 404 según corresponda, y 500 ante errores internos."
     )
     public ResponseEntity<EspecialidadResponse> createEspecialidadForDoctor(
         @PathVariable("doctorId") Long doctorId,
@@ -79,7 +79,7 @@ public class EspecialidadController {
     @GetMapping("/especialidades")
     @Operation(
         summary = "Lista todas las especialidades.",
-        description = "Recupera el catálogo global de especialidades disponible para asignar a nuevos doctores."
+        description = "Recupera el catálogo global de especialidades disponible para asignar a nuevos doctores. Puede devolver 204 cuando está vacío."
     )
     public ResponseEntity<List<EspecialidadResponse>> getAllEspecialidades() {
         List<Especialidad> especialidades = especialidadService.findAll();
@@ -95,7 +95,7 @@ public class EspecialidadController {
     @GetMapping("/especialidades/{id}")
     @Operation(
         summary = "Obtiene una especialidad por su ID.",
-        description = "Entrega la información básica de una especialidad específica o 404 cuando el registro no existe."
+        description = "Entrega la información básica de una especialidad específica. Devuelve 404 cuando el registro no existe y 500 ante fallos."
     )
     public ResponseEntity<EspecialidadResponse> getEspecialidadById(@PathVariable("id") Long id) {
         try {
@@ -109,7 +109,8 @@ public class EspecialidadController {
     @PostMapping("/especialidades")
     @Operation(
         summary = "Crea una especialidad asociada a un doctor.",
-        description = "Permite registrar y asociar simultáneamente una especialidad con un doctor existente, devolviendo 201 con el resultado."
+        description = "Permite registrar y asociar simultáneamente una especialidad con un doctor existente, devolviendo 201 con el resultado. "
+            + "Puede devolver 400 si faltan datos, 404 si el doctor no existe y 500 ante errores."
     )
     public ResponseEntity<EspecialidadResponse> createEspecialidad(@RequestBody EspecialidadRequest payload) {
         if (!isValidRequest(payload) || payload.getDoctorId() == null) {
@@ -126,7 +127,7 @@ public class EspecialidadController {
     @PutMapping("/especialidades/{id}")
     @Operation(
         summary = "Actualiza nombre y/o doctor de una especialidad.",
-        description = "Habilita la modificación selectiva del nombre o del doctor asociado. Retorna 200 con el registro actualizado o 404 si no existe."
+        description = "Habilita la modificación selectiva del nombre o del doctor asociado. Puede retornar 200 con el registro actualizado, 400 si no hay cambios válidos, 404 si no existe y 500 ante fallos."
     )
     public ResponseEntity<EspecialidadResponse> updateEspecialidad(
         @PathVariable("id") Long id,
@@ -146,7 +147,7 @@ public class EspecialidadController {
     @DeleteMapping("/especialidades/{id}")
     @Operation(
         summary = "Elimina una especialidad.",
-        description = "Borra el registro de especialidad indicado y responde 204 cuando se completa. Si no existe, devuelve 404."
+        description = "Borra el registro de especialidad indicado y responde 204 cuando se completa. Si no existe, devuelve 404; 409 cuando tiene doctores activos asociados; 500 ante errores."
     )
     public ResponseEntity<Void> deleteEspecialidad(@PathVariable("id") Long id) {
         try {

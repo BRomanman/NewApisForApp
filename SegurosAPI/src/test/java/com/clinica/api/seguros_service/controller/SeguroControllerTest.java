@@ -65,6 +65,16 @@ class SeguroControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/seguros/{id} responde 200 cuando el seguro existe")
+    void obtenerSeguro_returnsOk() throws Exception {
+        when(seguroService.findSeguroById(1L)).thenReturn(seguro());
+
+        mockMvc.perform(get("/api/v1/seguros/{id}", 1L))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.nombreSeguro").value("Dental"));
+    }
+
+    @Test
     @DisplayName("POST /api/v1/seguros responde 201 con el seguro creado")
     void crearSeguro_returnsCreated() throws Exception {
         when(seguroService.createSeguro(any(Seguro.class))).thenReturn(seguro());

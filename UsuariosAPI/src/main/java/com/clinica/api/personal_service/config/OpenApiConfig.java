@@ -10,7 +10,10 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
     info = @Info(
         title = "Usuarios API",
-        description = "Endpoints para gestionar usuarios, doctores y autenticación.",
+        description = "Endpoints para autenticación, pacientes, doctores, administradores y especialidades.\n"
+            + "Códigos típicos: 200/201 para respuestas exitosas, 204 cuando no hay contenido, 400 por payload inválido, "
+            + "401 credenciales erróneas, 404 recurso no encontrado, 409 conflictos de datos y 500 errores inesperados.\n"
+            + "Incluye subida/descarga de fotos de perfil (image/jpeg) y DTOs de dominio para swagger.",
         version = "1.0",
         contact = @Contact(name = "Equipo Clínicas", email = "contacto@clinica.com")
     ),

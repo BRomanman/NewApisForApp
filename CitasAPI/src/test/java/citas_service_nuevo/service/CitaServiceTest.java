@@ -147,7 +147,8 @@ class CitaServiceTest {
     void isDisponible_returnsTrueWhenAvailable() {
         Cita cita = new Cita();
         cita.setDisponible(true);
-        when(citaRepository.findById(3L)).thenReturn(Optional.of(cita));
+        cita.setEstado("Disponible");
+        when(citaRepository.findById(anyLong())).thenReturn(Optional.of(cita));
 
         boolean disponible = citaService.isDisponible(3L);
 
@@ -171,5 +172,47 @@ class CitaServiceTest {
         assertThat(result.getIdUsuario()).isNull();
         assertThat(result.getDisponible()).isTrue();
         verify(citaRepository).save(cita);
+    }
+
+    @Test
+    @DisplayName("reservar asigna usuario y marca la cita como confirmada cuando está disponible")
+    void reservar_updatesFieldsWhenAvailable() {
+        Cita cita = new Cita();
+        cita.setDisponible(true);
+        cita.setEstado("Disponible");
+        when(citaRepository.findById(4L)).thenReturn(Optional.of(cita));
+        when(citaRepository.save(any(Cita.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Cita reservada = citaService.reservar(4L, 20L);
+
+        assertThat(reservada.getIdUsuario()).isEqualTo(20L);
+        assertThat(reservada.getEstado()).isEqualTo("Confirmado");
+        assertThat(reservada.getDisponible()).isFalse();
+        verify(citaRepository).save(cita);
+    }
+
+    @Test
+    @DisplayName("reservar lanza IllegalStateException cuando la cita no está disponible")
+    void reservar_throwsWhenNotAvailable() {
+        Cita cita = new Cita();
+        cita.setDisponible(false);
+        cita.setEstado("Confirmado");
+        when(citaRepository.findById(5L)).thenReturn(Optional.of(cita));
+
+        assertThatThrownBy(() -> citaService.reservar(5L, 1L))
+            .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("isDisponible devuelve false cuando el estado no es Disponible")
+    void isDisponible_returnsFalseWhenStateDiffers() {
+        Cita cita = new Cita();
+        cita.setDisponible(true);
+        cita.setEstado("Confirmado");
+        when(citaRepository.findById(6L)).thenReturn(Optional.of(cita));
+
+        boolean disponible = citaService.isDisponible(6L);
+
+        assertThat(disponible).isFalse();
     }
 }

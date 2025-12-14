@@ -41,7 +41,8 @@ public class DoctorController {
     @GetMapping
     @Operation(
         summary = "Lista los doctores activos.",
-        description = "Entrega el listado filtrado sólo con doctores vigentes e incluye los datos contractuales para el admin."
+        description = "Entrega el listado filtrado sólo con doctores vigentes e incluye los datos contractuales para el admin. "
+            + "Puede responder 200 con la lista, 204 si no hay doctores o 500 ante un fallo."
     )
     public ResponseEntity<List<DoctorResponse>> getAllDoctores() {
         List<Doctor> doctores = personalService.findAllDoctores();
@@ -57,7 +58,8 @@ public class DoctorController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtiene la información del doctor por su ID.",
-        description = "Devuelve el detalle completo de un doctor específico, incluyendo los datos personales y su especialidad."
+        description = "Devuelve el detalle completo de un doctor específico, incluyendo los datos personales y su especialidad. "
+            + "Puede devolver 200, 404 si no existe o está inactivo, y 500 si ocurre un error."
     )
     public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable("id") Long id) {
         try {
@@ -71,7 +73,8 @@ public class DoctorController {
     @PostMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Sube o reemplaza la foto del doctor.",
-        description = "Recibe la imagen como multipart y la almacena en la columna foto_perfil de Doctores."
+        description = "Recibe la imagen como multipart y la almacena en la columna foto_perfil de Doctores. "
+            + "Puede responder 204 al guardar, 400 si el archivo es inválido, 404 si el doctor no existe y 500 ante fallos."
     )
     public ResponseEntity<Void> actualizarFotoPerfilDoctor(
         @PathVariable("id") Long id,
@@ -90,7 +93,8 @@ public class DoctorController {
     @GetMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Descarga la foto del doctor.",
-        description = "Retorna los bytes almacenados para que el frontend pueda renderizar el perfil."
+        description = "Retorna los bytes almacenados para que el frontend pueda renderizar el perfil. "
+            + "Puede devolver 200 con image/jpeg, 404 si no hay foto o doctor y 500 ante un error."
     )
     public ResponseEntity<byte[]> obtenerFotoPerfilDoctor(@PathVariable("id") Long id) {
         try {
@@ -107,7 +111,8 @@ public class DoctorController {
     @PostMapping
     @Operation(
         summary = "Crea un nuevo doctor.",
-        description = "Registra un profesional con su información contractual y de usuario, respondiendo 201 al persistirlo."
+        description = "Registra un profesional con su información contractual y de usuario. "
+            + "Puede responder 201 al crear, 400 si el payload es inválido o el correo está duplicado, 404 si faltan especialidad/rol, 409 por conflictos o 500 si algo falla."
     )
     public ResponseEntity<DoctorResponse> createDoctor(@RequestBody @Valid DoctorCreateRequest request) {
         try {
@@ -121,7 +126,8 @@ public class DoctorController {
     @PutMapping("/{id}")
     @Operation(
         summary = "Actualiza los datos económicos del doctor.",
-        description = "Permite modificar tarifa, sueldo, bono y datos del profesional de forma segura."
+        description = "Permite modificar tarifa, sueldo, bono y datos del profesional de forma segura. "
+            + "Puede devolver 200 al actualizar, 400 si el payload es inválido, 404 si el doctor no existe, 409 por conflictos o 500 ante un error."
     )
     public ResponseEntity<DoctorResponse> updateDoctor(
         @PathVariable("id") Long id,
@@ -140,7 +146,8 @@ public class DoctorController {
     @DeleteMapping("/{id}")
     @Operation(
         summary = "Marca como inactivo a un doctor.",
-        description = "Realiza una baja lógica para impedir nuevas asignaciones, devolviendo 204 o 404 si el doctor no existe."
+        description = "Realiza una baja lógica para impedir nuevas asignaciones. "
+            + "Puede responder 204, 404 si no existe y 500 si ocurre un error."
     )
     public ResponseEntity<Void> deleteDoctor(@PathVariable("id") Long id) {
         try {

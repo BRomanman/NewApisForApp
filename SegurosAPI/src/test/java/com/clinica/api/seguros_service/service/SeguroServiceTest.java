@@ -130,6 +130,17 @@ class SeguroServiceTest {
     }
 
     @Test
+    @DisplayName("findContratosBySeguro delega en el repositorio")
+    void findContratosBySeguro_returnsRepositoryData() {
+        when(contratoSeguroRepository.findByIdSeguro(5L)).thenReturn(List.of(contrato()));
+
+        List<ContratoSeguro> contratos = seguroService.findContratosBySeguro(5L);
+
+        assertThat(contratos).hasSize(1);
+        verify(contratoSeguroRepository).findByIdSeguro(5L);
+    }
+
+    @Test
     @DisplayName("findContratoById lanza EntityNotFoundException cuando no existe")
     void findContratoById_throwsWhenMissing() {
         when(contratoSeguroRepository.findById(99L)).thenReturn(Optional.empty());
@@ -163,6 +174,19 @@ class SeguroServiceTest {
 
         assertThat(resultado).isSameAs(contrato);
         verify(contratoSeguroRepository, never()).save(any(ContratoSeguro.class));
+    }
+
+    @Test
+    @DisplayName("createContrato limpia IDs de beneficiarios y los vincula al contrato")
+    void createContrato_resetsBeneficiaryIds() {
+        ContratoSeguro contrato = contrato();
+        contrato.getBeneficiarios().forEach(b -> b.setId(99L));
+        when(contratoSeguroRepository.save(any(ContratoSeguro.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ContratoSeguro creado = seguroService.createContrato(contrato);
+
+        assertThat(creado.getBeneficiarios()).allMatch(b -> b.getId() == null);
+        assertThat(creado.getBeneficiarios()).allMatch(b -> b.getContrato() == contrato);
     }
 
     private Seguro seguro() {

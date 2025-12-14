@@ -2,6 +2,7 @@ package com.clinica.api.personal_service.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,9 +10,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.clinica.api.personal_service.dto.DoctorCreateRequest;
 import com.clinica.api.personal_service.dto.DoctorUpdateRequest;
+import com.clinica.api.personal_service.exception.PersonalServiceExceptionHandler;
 import com.clinica.api.personal_service.model.Doctor;
 import com.clinica.api.personal_service.model.Especialidad;
 import com.clinica.api.personal_service.model.Rol;
@@ -21,27 +24,40 @@ import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-@WebMvcTest(DoctorController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class DoctorControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    @MockBean
+
+    @Mock
     private PersonalService personalService;
+
+    @InjectMocks
+    private DoctorController doctorController;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(doctorController)
+            .setControllerAdvice(new PersonalServiceExceptionHandler())
+            .build();
+    }
+
 
     @Test
     @DisplayName("GET /api/v1/doctores responde 200 con la lista de doctores")
@@ -118,7 +134,7 @@ class DoctorControllerTest {
         Doctor actualizado = doctor();
         actualizado.setTarifaConsulta(60000);
         actualizado.setSueldo(1500000L);
-        when(personalService.updateDoctor(1L, any(DoctorUpdateRequest.class))).thenReturn(actualizado);
+        when(personalService.updateDoctor(eq(1L), any(DoctorUpdateRequest.class))).thenReturn(actualizado);
 
         mockMvc.perform(put("/api/v1/doctores/{id}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +147,7 @@ class DoctorControllerTest {
     @Test
     @DisplayName("PUT /api/v1/doctores/{id} responde 404 cuando el doctor no existe")
     void updateDoctor_returnsNotFound() throws Exception {
-        when(personalService.updateDoctor(88L, any(DoctorUpdateRequest.class)))
+        when(personalService.updateDoctor(eq(88L), any(DoctorUpdateRequest.class)))
             .thenThrow(new EntityNotFoundException("no existe"));
 
         mockMvc.perform(put("/api/v1/doctores/{id}", 88L)
@@ -177,7 +193,7 @@ class DoctorControllerTest {
         DoctorUpdateRequest request = new DoctorUpdateRequest();
         request.setNombre("Ana");
         request.setApellido("Gomez");
-        request.setFechaNacimiento("1990-05-04");
+        request.setFechaNacimiento(LocalDate.of(1990, 5, 4));
         request.setCorreo("ana@demo.com");
         request.setTelefono("+56999999999");
         request.setIdEspecialidad(5L);
@@ -191,7 +207,7 @@ class DoctorControllerTest {
         DoctorCreateRequest request = new DoctorCreateRequest();
         request.setNombre("Ana");
         request.setApellido("Gomez");
-        request.setFechaNacimiento("1990-05-04");
+        request.setFechaNacimiento(LocalDate.of(1990, 5, 4));
         request.setCorreo("ana@demo.com");
         request.setTelefono("+56999999999");
         request.setContrasena("secreta");

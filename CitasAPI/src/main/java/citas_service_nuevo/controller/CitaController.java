@@ -53,6 +53,11 @@ public class CitaController {
     }
 
     @GetMapping("/usuario/{idUsuario}")
+    @Operation(
+        summary = "Lista todas las citas de un usuario.",
+        description = "Devuelve el histórico completo de reservas de un usuario. "
+            + "Puede responder 200 con la lista, 204 si no hay registros o 500 ante un fallo."
+    )
     public ResponseEntity<List<Cita>> getCitasByUsuario(@PathVariable("idUsuario") Long idUsuario) {
         List<Cita> citas = citaService.findByUsuario(idUsuario);
         if (citas.isEmpty()) {
@@ -62,6 +67,11 @@ public class CitaController {
     }
 
     @GetMapping("/usuario/{idUsuario}/proximas")
+    @Operation(
+        summary = "Citas futuras del usuario.",
+        description = "Filtra las citas a partir de la fecha actual inclusive. "
+            + "Puede devolver 200 con resultados, 204 si no hay próximas reservas o 500 si algo falla."
+    )
     public ResponseEntity<List<Cita>> getProximasCitasByUsuario(@PathVariable("idUsuario") Long idUsuario) {
         List<Cita> citas = citaService.findProximasByUsuario(idUsuario);
         if (citas.isEmpty()) {
@@ -71,6 +81,11 @@ public class CitaController {
     }
 
     @GetMapping("/doctor/{idDoctor}/proximas")
+    @Operation(
+        summary = "Citas futuras del doctor.",
+        description = "Lista las citas del médico a partir de hoy. "
+            + "Puede responder 200 con citas, 204 si no hay próximas atenciones o 500 ante un error."
+    )
     public ResponseEntity<List<Cita>> getProximasCitasByDoctor(@PathVariable("idDoctor") Long idDoctor) {
         List<Cita> citas = citaService.findProximasByDoctor(idDoctor);
         if (citas.isEmpty()) {
@@ -97,6 +112,11 @@ public class CitaController {
     }
 
     @GetMapping("/disponibles")
+    @Operation(
+        summary = "Bloques disponibles por doctor y fecha.",
+        description = "Retorna solo los bloques marcados como disponibles. "
+            + "Puede devolver 200 con los cupos, 204 si no hay, 400 si la fecha es inválida o 500 ante errores."
+    )
     public ResponseEntity<List<Cita>> getDisponiblesPorDoctorYFecha(
         @RequestParam("doctorId") Long doctorId,
         @RequestParam("fecha") String fecha
@@ -114,6 +134,11 @@ public class CitaController {
     }
 
     @GetMapping("/{id}/disponible")
+    @Operation(
+        summary = "Verifica disponibilidad de una cita.",
+        description = "True si el bloque está libre y en estado 'Disponible'. "
+            + "Puede responder 200 con el valor o 404 cuando el ID no existe."
+    )
     public ResponseEntity<Boolean> isCitaDisponible(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(citaService.isDisponible(id));
@@ -123,11 +148,21 @@ public class CitaController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Crea una cita (bloque horario).",
+        description = "Registra un bloque con horario y doctor. "
+            + "Puede devolver 201 al crear, 400 si los datos no son válidos, 409 por conflictos o 500 ante un error."
+    )
     public ResponseEntity<Cita> createCita(@RequestBody Cita cita) {
         return ResponseEntity.status(HttpStatus.CREATED).body(citaService.save(cita));
     }
 
     @PutMapping("/{id}")
+    @Operation(
+        summary = "Actualiza los datos de una cita.",
+        description = "Permite modificar horario, estado y asignaciones. "
+            + "Puede responder 200, 400 si el payload es inválido, 404 si el ID no existe, 409 por conflictos o 500 ante errores."
+    )
     public ResponseEntity<Cita> updateCita(@PathVariable("id") Long id, @RequestBody Cita citaDetails) {
         try {
             Cita existente = citaService.findById(id);
@@ -145,6 +180,11 @@ public class CitaController {
     }
 
     @PutMapping("/{id}/reservar")
+    @Operation(
+        summary = "Reserva una cita disponible.",
+        description = "Asigna el usuario, cambia el estado a Confirmado y marca no disponible. "
+            + "Puede devolver 200, 404 si no existe o 409 si ya está tomada."
+    )
     public ResponseEntity<Cita> reservarCita(
         @PathVariable("id") Long id,
         @RequestBody ReservarCitaRequest request
@@ -160,6 +200,11 @@ public class CitaController {
     }
 
     @PatchMapping("/{id}/cancelar")
+    @Operation(
+        summary = "Cancela una cita confirmada.",
+        description = "Libera el bloque, devuelve estado 'Disponible' y disponible=true. "
+            + "Puede responder 200 o 404 si no existe."
+    )
     public ResponseEntity<Cita> cancelarCita(@PathVariable("id") Long id) {
         try {
             return ResponseEntity.ok(citaService.cancelarCita(id));

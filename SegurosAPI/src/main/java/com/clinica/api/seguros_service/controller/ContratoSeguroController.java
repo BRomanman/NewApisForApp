@@ -35,7 +35,7 @@ public class ContratoSeguroController {
     @Operation(
         summary = "Obtiene los contratos de seguro asociados a un usuario.",
         description = "Devuelve todos los contratos vigentes o históricos de un beneficiario. "
-            + "Responde 204 cuando el usuario aún no ha contratado ningún plan."
+            + "Puede responder 200 con la lista, 204 cuando no hay contratos o 500 si ocurre un problema."
     )
     @ApiResponses({
         @ApiResponse(
@@ -60,7 +60,7 @@ public class ContratoSeguroController {
     @Operation(
         summary = "Obtiene los contratos de un seguro específico.",
         description = "Permite inspeccionar quiénes han suscrito un plan concreto, útil para métricas comerciales. "
-            + "Retorna 204 si el plan no tiene contratos."
+            + "Puede devolver 200 con resultados, 204 si el plan no tiene contratos o 500 si hay un fallo."
     )
     @ApiResponses({
         @ApiResponse(
@@ -85,7 +85,7 @@ public class ContratoSeguroController {
     @Operation(
         summary = "Obtiene un contrato por su ID.",
         description = "Entrega todos los campos del contrato solicitado, incluyendo beneficiarios y medios de contacto. "
-            + "Si el ID es inválido responde 404."
+            + "Puede responder 200 con el contrato, 404 si el ID no existe y 500 si algo sale mal."
     )
     @ApiResponses({
         @ApiResponse(
@@ -109,7 +109,8 @@ public class ContratoSeguroController {
     @PostMapping
     @Operation(
         summary = "Crea un nuevo contrato de seguro.",
-        description = "Registra la contratación de un plan, validando los campos obligatorios y devolviendo 201 con el contrato generado."
+        description = "Registra la contratación de un plan, validando los campos obligatorios y devolviendo 201 con el contrato generado. "
+            + "Puede responder 400 si el payload es inválido, 409 por conflictos de datos o 500 si falla algo."
     )
     @ApiResponses({
         @ApiResponse(
@@ -128,7 +129,8 @@ public class ContratoSeguroController {
     @PostMapping("/{id}/cancelar")
     @Operation(
         summary = "Cancela un contrato de seguro.",
-        description = "Marca el contrato como CANCELADO y fija la fecha de término. Si el contrato no existe, la respuesta es 404."
+        description = "Marca el contrato como CANCELADO y fija la fecha de término. "
+            + "Puede devolver 200 con el contrato cancelado, 404 si no existe o 500 si ocurre un error."
     )
     @ApiResponses({
         @ApiResponse(

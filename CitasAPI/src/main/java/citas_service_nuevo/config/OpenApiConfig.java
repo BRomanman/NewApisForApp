@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
     info = @Info(
         title = "Citas API",
-        description = "Catálogo de endpoints para administrar las citas médicas.",
+        description = "Catálogo de endpoints para administrar las citas médicas (reservar, cancelar, disponibilidad).\n"
+            + "Códigos esperados: 200/201 en operaciones exitosas, 204 cuando no hay citas, 400 por fechas/payload inválido, "
+            + "404 si la cita no existe, 409 cuando el bloque no está disponible, y 500 para errores inesperados.",
         version = "1.0",
         contact = @Contact(name = "Equipo Clínicas", email = "contacto@clinica.com")
     ),

@@ -37,7 +37,7 @@ public class SeguroController {
     @Operation(
         summary = "Lista todos los seguros disponibles.",
         description = "Devuelve el catálogo vigente de seguros con su información esencial. "
-            + "Responde 204 No Content cuando no existen planes configurados."
+            + "Puede responder 200 con la lista, 204 cuando no hay seguros o 500 si ocurre un fallo inesperado."
     )
     @ApiResponses({
         @ApiResponse(
@@ -61,7 +61,7 @@ public class SeguroController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtiene los detalles de un seguro por su ID.",
-        description = "Permite inspeccionar un plan particular y responde 404 cuando el identificador no pertenece a ningún seguro."
+        description = "Permite inspeccionar un plan particular. Puede devolver 200 con el seguro, 404 si no existe y 500 si ocurre un error."
     )
     @ApiResponses({
         @ApiResponse(
@@ -85,7 +85,8 @@ public class SeguroController {
     @PostMapping
     @Operation(
         summary = "Crea un nuevo seguro.",
-        description = "Registra un plan de seguro con la información proporcionada y devuelve 201 con el recurso almacenado."
+        description = "Registra un plan de seguro con la información proporcionada y devuelve 201 con el recurso almacenado. "
+            + "Puede responder 400 si el payload es inválido, 409 por violaciones de datos y 500 ante fallos internos."
     )
     @ApiResponses({
         @ApiResponse(
@@ -105,7 +106,7 @@ public class SeguroController {
     @Operation(
         summary = "Actualiza la información del seguro.",
         description = "Reemplaza los atributos fundamentales del plan (nombre, descripción y valor) para mantenerlo al día. "
-            + "Cuando el ID no existe se responde 404."
+            + "Puede responder 200 si se actualiza, 404 si el ID no existe, 400/409 por inconsistencias y 500 ante errores."
     )
     @ApiResponses({
         @ApiResponse(
@@ -133,7 +134,7 @@ public class SeguroController {
     @Operation(
         summary = "Elimina un seguro.",
         description = "Borra definitivamente el plan indicado y responde 204 al completar la operación. "
-            + "Un identificador inexistente provoca una respuesta 404."
+            + "Puede devolver 404 si no existe, 409 cuando hay dependencias (FK) y 500 ante fallos."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Seguro eliminado exitosamente."),

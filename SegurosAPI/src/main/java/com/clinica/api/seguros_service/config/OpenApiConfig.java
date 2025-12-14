@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Configuration;
     info = @Info(
         title = "Seguros API",
         version = "1.0",
-        description = "Documentación de los endpoints para la administración de seguros médicos.",
+        description = "Documentación de los endpoints para la administración de seguros médicos y contratos.\n"
+            + "Códigos: 200/201 en respuestas correctas, 204 sin datos, 400 payload inválido, 404 inexistente, "
+            + "409 conflictos (FK/duplicados) y 500 para fallos internos. Incluye esquemas Seguro, ContratoSeguro y Beneficiarios.",
         contact = @Contact(name = "Equipo Clínicas", email = "contacto@clinica.com")
     ),
     servers = {

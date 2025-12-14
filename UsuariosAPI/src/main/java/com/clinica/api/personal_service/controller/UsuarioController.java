@@ -37,7 +37,8 @@ public class UsuarioController {
     @GetMapping
     @Operation(
         summary = "Lista los usuarios no administradores.",
-        description = "Recupera únicamente cuentas no administrativas para evitar exponer perfiles críticos."
+        description = "Recupera únicamente cuentas no administrativas para evitar exponer perfiles críticos. "
+            + "Puede responder 200 con la lista, 204 si no hay registros o 500 ante un error."
     )
     public ResponseEntity<List<UsuarioResponse>> getAllUsuarios() {
         List<UsuarioResponse> usuarios = usuarioService.findAllUsuarios();
@@ -50,7 +51,8 @@ public class UsuarioController {
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtiene un usuario por su identificador.",
-        description = "Retorna la información del usuario si no es administrador; de lo contrario responde 404 para mantener seguridad."
+        description = "Retorna la información del usuario si no es administrador. "
+            + "Puede devolver 200, o 404 cuando no existe o es admin, y 500 si ocurre un problema inesperado."
     )
     public ResponseEntity<UsuarioResponse> getUsuarioById(@PathVariable("id") Long id) {
         try {
@@ -63,7 +65,8 @@ public class UsuarioController {
     @PostMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Sube o actualiza la foto de perfil del usuario.",
-        description = "Guarda la imagen enviada como multipart y reemplaza la foto existente en la tabla Usuarios."
+        description = "Guarda la imagen enviada como multipart y reemplaza la foto existente en la tabla Usuarios. "
+            + "Puede responder 204 al guardar, 400 si el archivo no es válido, 404 si el usuario no existe y 500 ante errores."
     )
     public ResponseEntity<Void> actualizarFotoPerfilUsuario(
         @PathVariable("id") Long id,
@@ -82,7 +85,8 @@ public class UsuarioController {
     @GetMapping("/{id}/foto-perfil")
     @Operation(
         summary = "Descarga la foto de perfil del usuario.",
-        description = "Retorna los bytes almacenados en la columna foto_perfil para que la app pueda mostrarlos."
+        description = "Retorna los bytes almacenados en la columna foto_perfil para que la app pueda mostrarlos. "
+            + "Puede entregar 200 con image/jpeg, 404 si no hay foto o usuario y 500 si ocurre un fallo."
     )
     public ResponseEntity<byte[]> obtenerFotoPerfilUsuario(@PathVariable("id") Long id) {
         try {
@@ -98,7 +102,8 @@ public class UsuarioController {
     @PostMapping
     @Operation(
         summary = "Crea un nuevo usuario.",
-        description = "Registra una nueva cuenta respetando las reglas de exclusión de administradores y devuelve 201 con el DTO resultante."
+        description = "Registra una nueva cuenta respetando las reglas de exclusión de administradores. "
+            + "Puede devolver 201 al crearla, 400 si el payload es inválido, 409 por conflicto de datos o 500 si falla algo."
     )
     public ResponseEntity<UsuarioResponse> createUsuario(@RequestBody Usuario usuario) {
         Usuario safeUsuario = requireUsuarioPayload(usuario);
@@ -109,7 +114,8 @@ public class UsuarioController {
     @PutMapping("/{id}")
     @Operation(
         summary = "Actualiza un usuario existente.",
-        description = "Permite modificar datos personales y credenciales cuando el usuario no es administrador, retornando el estado actualizado."
+        description = "Permite modificar datos personales y credenciales cuando el usuario no es administrador. "
+            + "Puede responder 200 si actualiza, 400 si el payload es inválido, 404 si no se encuentra o es admin, 409 por conflictos o 500 ante fallos."
     )
     public ResponseEntity<UsuarioResponse> updateUsuario(
         @PathVariable("id") Long id,
@@ -127,7 +133,8 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     @Operation(
         summary = "Elimina un usuario no administrador.",
-        description = "Elimina permanentemente la cuenta siempre que no sea administrativa; de lo contrario responde 404."
+        description = "Elimina permanentemente la cuenta siempre que no sea administrativa. "
+            + "Puede devolver 204 si elimina, 404 si no se encuentra o es admin y 500 si hay un error."
     )
     public ResponseEntity<Void> deleteUsuario(@PathVariable("id") Long id) {
         try {

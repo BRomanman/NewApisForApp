@@ -64,7 +64,7 @@ public class PersonalServiceExceptionHandler {
         if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
             return ex.getMessage();
         }
-        return ex.getStatusCode().getReasonPhrase();
+        return ((HttpStatus) ex.getStatusCode()).getReasonPhrase();
     }
 
     private String resolveBusinessCode(String message) {

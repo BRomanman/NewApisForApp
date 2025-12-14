@@ -58,6 +58,15 @@ class HistorialControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/historial/doctor/{id} responde 204 cuando no hay historiales")
+    void getHistorialesByDoctor_returnsNoContent() throws Exception {
+        when(historialService.findHistorialesByDoctorId(9L)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/historial/doctor/{doctorId}", 9L))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
     @DisplayName("GET /api/v1/historial/{id} responde 200 cuando existe")
     void getHistorialById_returnsOk() throws Exception {
         Historial historial = historial();

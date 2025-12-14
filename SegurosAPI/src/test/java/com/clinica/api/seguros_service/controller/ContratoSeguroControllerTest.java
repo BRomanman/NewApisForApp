@@ -65,12 +65,31 @@ class ContratoSeguroControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/v1/seguros/contratos/seguro/{id} responde 204 cuando no hay contratos")
+    void listarContratosPorSeguro_returnsNoContent() throws Exception {
+        when(seguroService.findContratosBySeguro(2L)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/v1/seguros/contratos/seguro/{idSeguro}", 2L))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
     @DisplayName("GET /api/v1/seguros/contratos/{id} responde 404 cuando el contrato no existe")
     void obtenerContrato_returnsNotFound() throws Exception {
         when(seguroService.findContratoById(90L)).thenThrow(new EntityNotFoundException("no existe"));
 
         mockMvc.perform(get("/api/v1/seguros/contratos/{id}", 90L))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/seguros/contratos/{id} responde 200 con el contrato")
+    void obtenerContrato_returnsOk() throws Exception {
+        when(seguroService.findContratoById(1L)).thenReturn(contrato());
+
+        mockMvc.perform(get("/api/v1/seguros/contratos/{id}", 1L))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.idSeguro").value(5L));
     }
 
     @Test

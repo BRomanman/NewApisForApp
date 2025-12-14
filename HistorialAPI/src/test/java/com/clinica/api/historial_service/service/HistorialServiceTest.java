@@ -69,4 +69,17 @@ class HistorialServiceTest {
             .hasMessageContaining("Historial no encontrado");
         verify(historialRepository).findById(30L);
     }
+
+    @Test
+    @DisplayName("findHistorialesByDoctorId retorna la lista del repositorio")
+    void findHistorialesByDoctorId_returnsRepositoryList() {
+        Historial historial = new Historial();
+        historial.setIdDoctor(9L);
+        when(historialRepository.findByIdDoctor(9L)).thenReturn(List.of(historial));
+
+        List<Historial> result = historialService.findHistorialesByDoctorId(9L);
+
+        assertThat(result).containsExactly(historial);
+        verify(historialRepository).findByIdDoctor(9L);
+    }
 }

@@ -31,7 +31,8 @@ public class HistorialController {
     @GetMapping("/usuario/{usuarioId}")
     @Operation(
         summary = "Obtiene todos los historiales asociados a un usuario.",
-        description = "Provee el detalle clínico completo de un paciente específico, devolviendo 204 si aún no registra atenciones."
+        description = "Provee el detalle clínico completo de un paciente específico. "
+            + "Puede responder 200 con la lista, 204 si aún no registra atenciones y 500 ante fallos."
     )
     @ApiResponses({
         @ApiResponse(
@@ -56,7 +57,7 @@ public class HistorialController {
     @Operation(
         summary = "Obtiene todos los historiales asociados a un doctor.",
         description = "Permite revisar todas las atenciones realizadas por un médico para análisis de desempeño u ocupación. "
-            + "Cuando no tiene historiales, se responde 204."
+            + "Puede responder 200 con resultados, 204 cuando no tiene historiales o 500 si ocurre un error."
     )
     @ApiResponses({
         @ApiResponse(
@@ -81,7 +82,7 @@ public class HistorialController {
     @Operation(
         summary = "Busca un historial por ID Historial.",
         description = "Entrega los datos clínicos detallados de un historial específico. "
-            + "Si el identificador no existe, se devuelve 404 Not Found."
+            + "Puede devolver 200 con el detalle, 404 si el ID no existe y 500 ante fallos."
     )
     @ApiResponses({
         @ApiResponse(
