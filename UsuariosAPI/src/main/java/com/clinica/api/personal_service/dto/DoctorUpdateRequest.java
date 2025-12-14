@@ -1,5 +1,7 @@
 package com.clinica.api.personal_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,8 +16,9 @@ public class DoctorUpdateRequest {
     @NotBlank
     private String apellido;
 
-    @NotBlank
-    private String fechaNacimiento;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaNacimiento;
 
     @NotBlank
     private String correo;
@@ -52,11 +55,11 @@ public class DoctorUpdateRequest {
         this.apellido = apellido;
     }
 
-    public String getFechaNacimiento() {
+    public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(String fechaNacimiento) {
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 

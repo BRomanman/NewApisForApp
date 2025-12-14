@@ -15,7 +15,6 @@ import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import javax.sql.rowset.serial.SerialBlob;
@@ -62,7 +61,7 @@ public class PersonalService {
         Doctor doctor = new Doctor();
         doctor.setNombre(trimValue(request.getNombre()));
         doctor.setApellido(trimValue(request.getApellido()));
-        doctor.setFechaNacimiento(parseFechaNacimiento(request.getFechaNacimiento()));
+        doctor.setFechaNacimiento(requireFechaNacimiento(request.getFechaNacimiento()));
         doctor.setCorreo(correo);
         doctor.setTelefono(request.getTelefono());
         doctor.setContrasena(request.getContrasena());
@@ -96,7 +95,7 @@ public class PersonalService {
 
         doctor.setNombre(trimValue(request.getNombre()));
         doctor.setApellido(trimValue(request.getApellido()));
-        doctor.setFechaNacimiento(parseFechaNacimiento(request.getFechaNacimiento()));
+        doctor.setFechaNacimiento(requireFechaNacimiento(request.getFechaNacimiento()));
         doctor.setCorreo(correo);
         doctor.setTelefono(request.getTelefono());
         doctor.setTarifaConsulta(request.getTarifaConsulta());
@@ -170,15 +169,11 @@ public class PersonalService {
         }
     }
 
-    private LocalDate parseFechaNacimiento(String fecha) {
-        if (fecha == null || fecha.isBlank()) {
+    private LocalDate requireFechaNacimiento(LocalDate fecha) {
+        if (fecha == null) {
             throw new IllegalArgumentException("fechaNacimiento es requerido");
         }
-        try {
-            return LocalDate.parse(fecha);
-        } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("fechaNacimiento inválida", ex);
-        }
+        return fecha;
     }
 
     private String trimValue(String value) {
